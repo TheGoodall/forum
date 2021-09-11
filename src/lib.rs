@@ -13,13 +13,23 @@ fn log_request(req: &Request) {
 }
 
 #[event(fetch)]
-pub async fn main(req: Request, _env: Env) -> Result<Response> {
+pub async fn main(req: Request, env: Env) -> Result<Response> {
     log_request(&req);
 
     // Optionally, get more helpful error messages written to the console in the case of a panic.
     utils::set_panic_hook();
 
-    let index = include_str!("html/index.html");
 
-    Response::from_html(index)
+
+
+    let router = Router::new(());
+    router
+        .get_async("/", |_req, ctx| async move {
+            let index = include_str!("html/index.html");
+            let kv = ctx.kv("POSTS")?;
+            let keys = kv.list().execute().await?;
+            console_log!("{:#?}", keys);
+            Response::from_html(index)
+    })
+        .run(req, env).await
 }
