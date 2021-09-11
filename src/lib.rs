@@ -1,7 +1,7 @@
 use serde_json::json;
 use worker::*;
-
 mod utils;
+
 
 fn log_request(req: &Request) {
     console_log!(
@@ -15,12 +15,11 @@ fn log_request(req: &Request) {
 
 #[event(fetch)]
 pub async fn main(req: Request, env: Env) -> Result<Response> {
+    let context = StandardContext::new();
+
     log_request(&req);
-
-    // Optionally, get more helpful error messages written to the console in the case of a panic.
     utils::set_panic_hook();
-
-    let index = include_str!("html/index.html");
-
-    Response::from_html(index)
+    
+    let raw = include_str!("html/index.html");
+    Response::from_html(raw)
 }
