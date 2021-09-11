@@ -4,6 +4,12 @@ workers_dev = true
 compatibility_date = "2021-08-27" # required
 compatibility_flags = [ "formdata_parser_supports_files" ] # required
 
+account_id = "35731bea8d79eb5550079b4e017b7a33"
+
+kv_namespaces = [
+  { binding = "POSTS", id = "b5496af25e96469c9c31977dbdefa867", preview_id = "b5496af25e96469c9c31977dbdefa867" }
+]
+
 [vars]
 WORKERS_RS_VERSION = "0.0.4"
 
@@ -18,6 +24,7 @@ main   = "./shim.mjs"
 [[build.upload.rules]]
 globs = ["**/*.wasm"]
 type  = "CompiledWasm"
+
 
 # read more about configuring your Worker via wrangler.toml at:
 # https://developers.cloudflare.com/workers/cli-wrangler/configuration

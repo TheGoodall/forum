@@ -1,4 +1,3 @@
-use serde_json::json;
 use worker::*;
 mod utils;
 
@@ -19,7 +18,16 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
 
     log_request(&req);
     utils::set_panic_hook();
-    
-    let raw = include_str!("html/index.html");
-    Response::from_html(raw)
+
+
+    let router = Router::new(());
+    router
+        .get_async("/", |_req, ctx| async move {
+            let index = include_str!("html/index.html");
+            let kv = ctx.kv("POSTS")?;
+            let keys = kv.list().execute().await?;
+            console_log!("{:#?}", keys);
+            Response::from_html(index)
+    })
+        .run(req, env).await
 }
