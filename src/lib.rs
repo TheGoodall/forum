@@ -1,6 +1,6 @@
 use worker::*;
-
 mod utils;
+
 
 fn log_request(req: &Request) {
     console_log!(
@@ -14,9 +14,9 @@ fn log_request(req: &Request) {
 
 #[event(fetch)]
 pub async fn main(req: Request, env: Env) -> Result<Response> {
-    log_request(&req);
+    let context = StandardContext::new();
 
-    // Optionally, get more helpful error messages written to the console in the case of a panic.
+    log_request(&req);
     utils::set_panic_hook();
 
 
