@@ -1,5 +1,5 @@
-use serde_json::json;
 use worker::*;
+use futures::future::join_all;
 mod utils;
 
 
@@ -19,19 +19,14 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
     utils::set_panic_hook();
 
 
-    let router = Router::new(());
-    router
-        .get_async("/", |_req, ctx| async move {
-            let index = include_str!("html/index.html");
-            let kv = ctx.kv("POSTS")?;
-            let keys = kv.list().execute().await?.keys;
-            let values = keys.iter()
-                .map(|key| async {
-                    kv.get(key.name.as_str())
-                })
-                .collect::<Vec<_>>();
-            console_log!("{:#?}", );
-            Response::from_html(index)
-    })
-        .run(req, env).await
+    let index = include_str!("html/index.html");
+    let kv = env.kv("POSTS")?;
+    let keys = kv.list().execute().await?.keys;
+    let values = keys.iter()
+        .map(|key| {
+            kv.get(key.name.as_str())
+        })
+        .collect::<Vec<_>>();
+    console_log!("{:#?}", join_all(values).await);
+    Response::from_html(index)
 }
