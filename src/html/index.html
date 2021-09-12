@@ -1,18 +1,22 @@
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="description" content="threddit - the unstructured mega-directory forum">
+		<meta name="description" content="threddit - the unstructured mega-forum">
 		<style>/*style*/</style>
 	</head>
 	<body>
 		<header><h1>threddit</h1></header>
 		<main>
-		<article>
-			<h2>{{post_name}}</h2>
-			<form class="user-reply">
-
-			</form>
-		</article>
+			<div class="post">
+				<h2>{{post_name}}</h2>
+				<div class="subpost-group">
+					{{subposts}}
+				</div>
+				<form class="user-reply">
+					
+				</form>
+			</div>
+			<aside><h3>Auxilliary content</h3><p>This is some content that goes at the side on larger screens, or at the bottom for smaller screens</p></aside>
 		</main>
 		<footer>Copyright &copy; James & Jamie<br><small>Want to advertise here? Contact Jamie <em>discreetly</em></small></footer>
 	</body>
