@@ -1,4 +1,4 @@
-use serde_json::json;
+//use serde_json::json;
 use worker::*;
 mod utils;
 
@@ -18,7 +18,7 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
     log_request(&req);
     utils::set_panic_hook();
 
-
+/*
     let router = Router::new(());
     router
         .get_async("/", |_req, ctx| async move {
@@ -33,5 +33,7 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
             console_log!("{:#?}", );
             Response::from_html(index)
     })
-        .run(req, env).await
+        .run(req, env).await*/
+    let index = str::replace(include_str!("html/index.html"),"{{post_name}}",req.path().as_str());
+    Response::from_html(index)
 }
