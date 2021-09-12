@@ -19,14 +19,25 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
     utils::set_panic_hook();
 
     let index = include_str!("html/index.html");
+    let style = include_str!("html/index.css");
+
+    Response::from_html(str::replace(index, "/*style*/", style))
+}
+
+async fn get_post_content(env: Env, postid: String) -> Result<String> {
+    todo!()
+
+}
+
+async fn get_replies(env: Env, postid: String) -> Result<Vec<(String,String)>> {
     let kv = env.kv("POSTS")?;
-    let post_name = req.path().as_str()[1..];
-    let keys = kv.list().prefix("".to_string()).execute().await?.keys;
+    let keys = kv.list().execute().await?.keys;
     let values = keys.iter()
         .map(|key| {
             kv.get(key.name.as_str())
         })
         .collect::<Vec<_>>();
-    console_log!("{:#?}", join_all(values).await);
-    Response::from_html(str::replace(index, "{{post_name}}", &post_name))
+    let posts = join_all(values).await;
+    console_log!("{:#?}", posts);
+    todo!()
 }
