@@ -14,8 +14,6 @@ fn log_request(req: &Request) {
 
 #[event(fetch)]
 pub async fn main(req: Request, env: Env) -> Result<Response> {
-    let context = StandardContext::new();
-
     log_request(&req);
     utils::set_panic_hook();
 
