@@ -1,4 +1,3 @@
-use std::stream::Stream;
 use serde_json::json;
 use worker::*;
 mod utils;
