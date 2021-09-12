@@ -18,15 +18,15 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
     log_request(&req);
     utils::set_panic_hook();
 
-
     let index = include_str!("html/index.html");
     let kv = env.kv("POSTS")?;
-    let keys = kv.list().execute().await?.keys;
+    let post_name = req.path().as_str()[1..];
+    let keys = kv.list().prefix("".to_string()).execute().await?.keys;
     let values = keys.iter()
         .map(|key| {
             kv.get(key.name.as_str())
         })
         .collect::<Vec<_>>();
     console_log!("{:#?}", join_all(values).await);
-    Response::from_html(index)
+    Response::from_html(str::replace(index, "{{post_name}}", &post_name))
 }
