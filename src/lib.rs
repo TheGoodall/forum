@@ -20,6 +20,16 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
 
 
     let index = include_str!("html/index.html");
+    let stylesheet = include_str!("html/stylesheet.css");
+    Response::from_html(index)
+}
+
+async fn get_post_content(env: Env, postid: String) -> Result<String> {
+    todo!()
+
+}
+
+async fn get_replies(env: Env, postid: String) -> Result<Vec<(String,String)>> {
     let kv = env.kv("POSTS")?;
     let keys = kv.list().execute().await?.keys;
     let values = keys.iter()
@@ -27,6 +37,7 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
             kv.get(key.name.as_str())
         })
         .collect::<Vec<_>>();
-    console_log!("{:#?}", join_all(values).await);
-    Response::from_html(index)
+    let posts = join_all(values).await;
+    console_log!("{:#?}", posts);
+    todo!()
 }
