@@ -14,20 +14,30 @@ header {
     background-color: #8ffff2;
 }
 
-main {
-    width: 320px;
-    margin: auto;
+.container {
+    max-width: 500px;
+    
+    margin:auto;
 }
 
 
-@media (min-width:576px) {
-    main {
+@media (min-width:768px) {
+    .container {
         display:flex;
+        max-width:700px;
+    }
+
+    main {
+        flex: 1 1;
+    }
+
+    aside {
+        width: 200px;
     }
 }
 
-@media (min-width: 768px) {
-    .post {
-        width: 576px;
+@media (min-width: 992px) {
+    .container {
+        max-width:900px; 
     }
 }

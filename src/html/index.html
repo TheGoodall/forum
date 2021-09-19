@@ -6,18 +6,20 @@
 	</head>
 	<body>
 		<header><h1>threddit</h1></header>
-		<main>
-			<div class="post">
+		<div class="container">
+			<main>
 				<h2>{{post_name}}</h2>
 				<div class="subpost-group">
 					{{subposts}}
+					<form class="subpost user-subpost">
+						<input maxlength="1">
+					</form>
 				</div>
-				<form class="user-reply">
-					
-				</form>
-			</div>
+			</main>
 			<aside><h3>Auxilliary content</h3><p>This is some content that goes at the side on larger screens, or at the bottom for smaller screens</p></aside>
-		</main>
+		
+		</div>
+		
 		<footer>Copyright &copy; James & Jamie<br><small>Want to advertise here? Contact Jamie <em>discreetly</em></small></footer>
 	</body>
 </html>
