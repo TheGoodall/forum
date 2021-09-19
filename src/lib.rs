@@ -40,7 +40,10 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
 
             let response = include_str!("html/index.html")
                 .replace("/*style*/", style)
-                .replace("<!--content-->", content.as_str());
+                .replace("<!--title-->", post_id)
+                .replace("<!--content-->", content.as_str())
+                .replace("<!--replies-->", replies_html.as_str());
+
             Response::from_html(response)
         }
         Method::Post => Response::empty(),
