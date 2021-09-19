@@ -17,16 +17,39 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
     log_request(&req);
     utils::set_panic_hook();
 
-    let index = include_str!("html/index.html");
-    let style = include_str!("html/index.css");
-    let response = index
-        .replace("/*style*/", style);
+    match req.method() {
+        Method::Get => {
+            let style = include_str!("html/index.css");
+            let path = req.path();
+            let post_id = path.strip_prefix("/").unwrap(); //path always starts with /
+            let content = match get_content(&env, post_id).await? {
+                None => {
+                    return Response::error("Page Not Found", 404);
+                }
+                Some(content) => content,
+            };
+            let replies = get_replies(&env, post_id).await?;
+            let replies_html = replies
+                .iter()
+                .map(|(id, content)| {
+                    include_str!("html/templates/post.html")
+                        .replace("<!--title-->", id)
+                        .replace("<!--content-->", content)
+                })
+                .collect::<String>();
 
-    Response::from_html(response)
+            let response = include_str!("html/index.html")
+                .replace("/*style*/", style)
+                .replace("<!--content-->", content.as_str());
+            Response::from_html(response)
+        }
+        Method::Post => Response::empty(),
+        _ => Response::error("Only Get and Post methods are allowed", 405),
+    }
 }
 
-async fn get_content(env: Env, post_id: String) -> Result<Option<String>> {
-    let prefix = get_prefix(post_id.as_str());
+async fn get_content(env: &Env, post_id: &str) -> Result<Option<String>> {
+    let prefix = get_prefix(post_id);
     let data = env.kv("POSTS")?.get(prefix.as_str()).await?;
     let content: Option<String>;
     if let Some(contents) = data {
@@ -34,20 +57,18 @@ async fn get_content(env: Env, post_id: String) -> Result<Option<String>> {
     } else {
         content = None;
     }
-    
-    Ok(content)
 
+    Ok(content)
 }
 
-async fn post_content(env: Env, post_id: &str, contents: &str) -> Result<()> {
+async fn post_content(env: &Env, post_id: &str, contents: &str) -> Result<()> {
     let kv = env.kv("POSTS")?;
     let prefix = get_prefix(post_id);
     kv.put(prefix.as_str(), contents)?.execute().await?;
     Ok(())
-
 }
 
-async fn get_replies(env: Env, post_id: &str) -> Result<Vec<(String, String)>> {
+async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String)>> {
     let limit = 50;
     let prefix = get_prefix(post_id);
 
@@ -62,7 +83,12 @@ async fn get_replies(env: Env, post_id: &str) -> Result<Vec<(String, String)>> {
     let replies = keys.keys.iter().map(|key| {
         let key_name = key.name.as_str();
         let body = kv.get(key_name);
-        async move { (key_name.trim_start().to_string(), body.await.unwrap().unwrap().as_string()) }
+        async move {
+            (
+                key_name.trim_start().to_string(),
+                body.await.unwrap().unwrap().as_string(),
+            )
+        }
     });
     let test = join_all(replies).await;
     Ok(test)
