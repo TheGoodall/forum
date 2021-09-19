@@ -49,11 +49,12 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
         Method::Post => {
             let path = req.path();
             let post_id = path.strip_prefix("/").unwrap(); //path always starts with /
-            if let Some(FormEntry::Field(title)) = req.form_data().await?.get("title") {
-                if let Some(FormEntry::Field(content)) = req.form_data().await?.get("content") {
+            let form_data = req.form_data().await?;
+            if let Some(FormEntry::Field(title)) = form_data.get("title") {
+                if let Some(FormEntry::Field(content)) = form_data.get("content") {
                     let fulltitle = format!("{}{}", post_id, title);
                     post_content(&env, fulltitle.as_str(), content.as_str()).await?;
-                    return Response::empty();
+                    return Response::error(format!("/{}", fulltitle), 303);
                 }   
             }
             Response::error("Bad Request", 400)
