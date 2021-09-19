@@ -54,10 +54,13 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                 if let Some(FormEntry::Field(content)) = form_data.get("content") {
                     let fulltitle = format!("{}{}", post_id, title);
                     post_content(&env, fulltitle.as_str(), content.as_str()).await?;
-                    return Response::error(format!("/{}", fulltitle), 303);
+                    let response = Response::empty();
+                    let mut headers = Headers::new();
+                    headers.set("Location", format!("/{}", fulltitle).as_str())?;
+                    return Ok(response?.with_status(303).with_headers(headers));
                 }   
             }
-            Response::error("Bad Request", 400)
+            Response::error("Bad request", 400)
         },
 
         _ => Response::error("Only Get and Post methods are allowed", 405),
