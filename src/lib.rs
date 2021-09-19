@@ -16,11 +16,11 @@ fn log_request(req: &Request) {
 pub async fn main(req: Request, env: Env) -> Result<Response> {
     log_request(&req);
     utils::set_panic_hook();
-    
+
     let index = include_str!("html/index.html");
     let style = include_str!("html/index.css");
 
-    Response::from_html(str::replace(index, "/*style*/", style))
+    Response::from_html(str::replace(index, "/*style*/", style));
 
 }
 
