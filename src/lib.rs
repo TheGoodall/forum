@@ -19,8 +19,10 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
 
     let index = include_str!("html/index.html");
     let style = include_str!("html/index.css");
+    let response = index
+        .replace("/*style*/", style);
 
-    Response::from_html(str::replace(index, "/*style*/", style))
+    Response::from_html(response)
 }
 
 async fn get_content(env: Env, post_id: String) -> Result<Option<String>> {
