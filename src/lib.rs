@@ -52,7 +52,7 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
 }
 
 async fn get_content(env: &Env, post_id: &str) -> Result<Option<String>> {
-    let prefix = get_prefix(post_id);
+    let prefix = get_prefix(post_id, 0);
     let data = env.kv("POSTS")?.get(prefix.as_str()).await?;
     let content: Option<String>;
     if let Some(contents) = data {
@@ -66,14 +66,14 @@ async fn get_content(env: &Env, post_id: &str) -> Result<Option<String>> {
 
 async fn post_content(env: &Env, post_id: &str, contents: &str) -> Result<()> {
     let kv = env.kv("POSTS")?;
-    let prefix = get_prefix(post_id);
+    let prefix = get_prefix(post_id, 0);
     kv.put(prefix.as_str(), contents)?.execute().await?;
     Ok(())
 }
 
 async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String)>> {
     let limit = 50;
-    let prefix = get_prefix(post_id);
+    let prefix = get_prefix(post_id, 1);
 
     let keys = env
         .kv("POSTS")?
@@ -97,12 +97,12 @@ async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String)>> 
     Ok(test)
 }
 
-fn get_prefix(post_id: &str) -> String {
+fn get_prefix(post_id: &str, offset: usize) -> String {
     let key_length = post_id.len();
     let zeros = " "
         .chars()
         .cycle()
-        .take(512 - key_length)
+        .take((512 - key_length)-offset)
         .collect::<String>();
     format!("{}{}", zeros, post_id)
 }
