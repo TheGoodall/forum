@@ -60,10 +60,10 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                     return Ok(response?.with_status(303).with_headers(headers));
                 }   
             }
-            Response::error("Bad request", 400)
+            Response::error("Bad request, title and content must both be present.", 400)
         },
 
-        _ => Response::error("Only Get and Post methods are allowed", 405),
+        _ => Response::error("Only GET and POST methods are allowed", 405),
     }
 }
 
