@@ -13,7 +13,7 @@ fn log_request(req: &Request) {
 }
 
 #[event(fetch)]
-pub async fn main(req: Request, env: Env) -> Result<Response> {
+pub async fn main(mut req: Request, env: Env) -> Result<Response> {
     log_request(&req);
     utils::set_panic_hook();
 
@@ -46,7 +46,19 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
 
             Response::from_html(response)
         }
-        Method::Post => Response::empty(),
+        Method::Post => {
+            let path = req.path();
+            let post_id = path.strip_prefix("/").unwrap(); //path always starts with /
+            if let Some(FormEntry::Field(title)) = req.form_data().await?.get("title") {
+                if let Some(FormEntry::Field(content)) = req.form_data().await?.get("content") {
+                    let fulltitle = format!("{}{}", post_id, title);
+                    post_content(&env, fulltitle.as_str(), content.as_str()).await?;
+                    return Response::empty();
+                }   
+            }
+            Response::error("Bad Request", 400)
+        },
+
         _ => Response::error("Only Get and Post methods are allowed", 405),
     }
 }
