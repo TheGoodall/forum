@@ -8,12 +8,20 @@
 		<header><h1>threddit</h1></header>
 		<div class="container">
 			<main>
-				<h2>{{post_name}}</h2>
+				<article class="post">
+					<h2>A</h2>
+					<p>The second post you'll ever see</p>
+				</article>
+				<form class="user-subpost" method="POST" action="a" >
+					<span class="user-subpost-title" tabindex="1">A<input id="title" maxlength="1"></span>
+					<textarea maxlength="512" id="content"></textarea>
+					<button type="submit">Post</button>
+				</form>
 				<div class="subpost-group">
-					{{subposts}}
-					<form class="subpost user-subpost">
-						<input maxlength="1">
-					</form>
+					<article class="subpost">
+						<h3>Ap</h3>
+						<p></p>
+					</article>
 				</div>
 			</main>
 			<aside><h3>Auxilliary content</h3><p>This is some content that goes at the side on larger screens, or at the bottom for smaller screens</p></aside>

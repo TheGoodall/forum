@@ -20,6 +20,26 @@ header {
     margin:auto;
 }
 
+.user-subpost textarea {
+    display: block;
+}
+
+.user-subpost button {
+    display: block;
+}
+
+.user-subpost-title {
+    display: inline-block;
+    border: 1px solid grey;
+    padding: 5px;
+}
+
+.user-subpost-title input {
+    outline: none;
+    border: none;
+    padding: 0;
+
+}
 
 @media (min-width:768px) {
     .container {
