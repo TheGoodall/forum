@@ -65,7 +65,6 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
             // unpack form data and ensure that the correct attributes exist.
             if let Some(FormEntry::Field(title)) = form_data.get("title") {
                 if let Some(FormEntry::Field(content)) = form_data.get("content") {
-
                     // Assemble full title from old title and new char
                     let fulltitle = format!("{}{}", post_id, title);
 
@@ -73,11 +72,10 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                     // Ensure Ensure title is a valid char
                     // Ensure path exists
                     // Ensure fulltitle doesn't exist
-                    if let Some(_) = get_content(&env, fulltitle.as_str()).await?{
-                        return Response::error("Error: post already exists", 409)
+                    if let Some(_) = get_content(&env, fulltitle.as_str()).await? {
+                        return Response::error("Error: post already exists", 409);
                     }
                     // Ensure total length is <= 512
-
 
                     // actually save new post content
                     post_content(&env, fulltitle.as_str(), content.as_str()).await?;
@@ -135,16 +133,26 @@ async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String)>> 
     let kv = env.kv("POSTS")?;
 
     // get content for each key
-    let replies = keys.keys.iter().map(|key| {
-        let key_name = key.name.as_str();
-        let body = kv.get(key_name);
-        async move {
-            (
-                key_name.trim_start().to_string(),
-                body.await.unwrap().unwrap().as_string(),
-            )
-        }
-    });
+    let replies = keys
+        .keys
+        .iter()
+        .filter(|key| {
+            if let Some(_) = key.name.rfind(|c: char| !c.is_whitespace()) {
+                true
+            } else {
+                false
+            }
+        })
+        .map(|key| {
+            let key_name = key.name.as_str();
+            let body = kv.get(key_name);
+            async move {
+                (
+                    key_name.trim_start().to_string(),
+                    body.await.unwrap().unwrap().as_string(),
+                )
+            }
+        });
     let test = join_all(replies).await;
     Ok(test)
 }
