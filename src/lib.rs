@@ -54,7 +54,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
 
             Response::from_html(response)
         }
-        Method::Post => {
+        Method::Put => {
             // Get post_id from path
             let path = req.path();
             let post_id = path.strip_prefix("/").unwrap(); //path always starts with /
