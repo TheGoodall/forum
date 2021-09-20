@@ -65,14 +65,19 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
             // unpack form data and ensure that the correct attributes exist.
             if let Some(FormEntry::Field(title)) = form_data.get("title") {
                 if let Some(FormEntry::Field(content)) = form_data.get("content") {
+
+                    // Assemble full title from old title and new char
+                    let fulltitle = format!("{}{}", post_id, title);
+
                     // Ensure title is one char
                     // Ensure Ensure title is a valid char
                     // Ensure path exists
                     // Ensure fulltitle doesn't exist
+                    if let Some(_) = get_content(&env, fulltitle.as_str()).await?{
+                        return Response::error("Error: post already exists", 409)
+                    }
                     // Ensure total length is <= 512
 
-                    // Assemble full title from old title and new char
-                    let fulltitle = format!("{}{}", post_id, title);
 
                     // actually save new post content
                     post_content(&env, fulltitle.as_str(), content.as_str()).await?;
