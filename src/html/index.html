@@ -12,7 +12,7 @@
 					<h2><!--title--></h2> <span class="user">@<!--user--></span>
 					<p><!--content--></p>
 				</article>
-				<form class="user-subpost" method="POST" action="<!--title-->" >
+				<form class="user-subpost" method="PUT" action="<!--title-->" >
 					<span class="user-subpost-title"><!--title--><input name="title" maxlength="1" autocomplete="off"></span>
 					<textarea maxlength="512" name="content"></textarea>
 					<button type="submit">Post</button>
@@ -22,15 +22,27 @@
 				</div>
 			</main>
 			<aside>
-				<h3>Auxilliary content</h3>
-				<p>This is some content that goes at the side on larger screens, or at the bottom for smaller screens</p>
+				<h3>Welcome!</h3>
+				<p>This is treply. It's a mega-forum where every post title contains the title of the post it's replying to. That might seem like a wierd gimmick.</p>
 				<section class="login-container">
-					<input type="checkbox">
-					<form class="login">
-						Login stuff goes here
+					<input id="login-toggle" type="checkbox">
+					<label for="login-toggle">
+						<div class="login-toggle-login">Login</div>
+						<div class="login-toggle-register">Register</div>
+					</label>
+					<form class="login" method="POST" action="<!--title-->?login">
+						<label>
+							<input name="email" type="email" placeholder="Email">
+							<input name="password" type="password" placeholder="Password">
+							<button type="submit">Login</button>
+						</label>
 					</form>
-					<form class="register">
-						Register stuff goes here
+					<form class="register" method="POST" action="<!--title-->?register">
+						<label>
+							<input name="email" placeholder="Email"/>
+							<input name="password" placeholder="Password"/>
+							<button type="submit">Register</button>
+						</label>
 					</form>
 				</section>
 			</aside>
