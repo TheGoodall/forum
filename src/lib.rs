@@ -69,13 +69,22 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                     let fulltitle = format!("{}{}", post_id, title);
 
                     // Ensure title is one char
+                    if title.len() != 1 {
+                        return Response::error("Error: Only one char can be added at a time", 400);
+                    }
                     // Ensure Ensure title is a valid char
                     // Ensure path exists
+                    if let None = get_content(&env, post_id).await? {
+                        return Response::error("Error: Can only reply to a post that exists" , 400);
+                    }
                     // Ensure fulltitle doesn't exist
                     if let Some(_) = get_content(&env, fulltitle.as_str()).await? {
                         return Response::error("Error: post already exists", 409);
                     }
                     // Ensure total length is <= 512
+                    if fulltitle.len() >= 512 {
+                        return Response::error("Error: max length has been reached", 400)
+                    }
 
                     // actually save new post content
                     post_content(&env, fulltitle.as_str(), content.as_str()).await?;
@@ -88,9 +97,12 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                 }
             }
             Response::error("Bad request, title and content must both be present.", 400)
+        },
+        Method::Post => {
+            todo!()
         }
 
-        _ => Response::error("Only GET and POST methods are allowed", 405),
+        _ => Response::error("Only GET, PUT and POST methods are allowed", 405),
     }
 }
 
