@@ -5,6 +5,9 @@ html, body, h1, h2, h3, h4, h5, h6, p {
     box-sizing: border-box;
 }
 
+
+
+
 h1, h2, h3, h4, h5, h6 {
     display: inline-block;
 }
@@ -14,12 +17,12 @@ html {
 }
 
 header {
-    background-color: #8ffff2;
+    background-color: #6df;
     padding: 4px;
 }
 
 footer {
-    background-color: #8ffff2;
+    background-color: #6df;
     padding: 4px;
 }
 
@@ -32,6 +35,81 @@ h1 {
     max-width: 500px;
     margin: 4px auto 4px;
     padding: 4px;
+
+}
+
+.login-container {
+    margin-top: 8px;
+}
+
+.login-container input {
+    display: block;
+    margin: 4px 0 0 0;
+    padding: 4px;
+}
+
+.login-container button {
+    cursor:pointer;
+    display: inline-block;
+    margin: 4px 0 0 0;
+    padding: 4px;
+}
+
+#login-toggle {
+    display: none;
+}
+
+label[for="login-toggle"] {
+    cursor: pointer;
+    display: flex;
+    pointer-events: none;
+}
+
+.login-toggle-login {
+    flex: 1 1;
+    padding: 3px;
+    text-align: center;
+    user-select: none;
+    border-bottom: 2px solid #6df;
+}
+
+.login-toggle-register {
+    flex: 1 1;
+    padding: 3px;
+    text-align: center;
+    pointer-events: all;
+    user-select: none;
+}
+
+.login-toggle-register:hover {
+    background-color: #eff;
+}
+
+#login-toggle:checked+label .login-toggle-register {
+    pointer-events: none;
+    border-bottom: 2px solid #6fa;
+    background-color: white;
+}
+
+#login-toggle:checked+label .login-toggle-login {
+    pointer-events: all;
+    border-bottom: none;
+}
+
+#login-toggle:checked+label .login-toggle-login:hover {
+    background-color: #eff;
+}
+
+.login-container .register {
+    display: none;
+}
+
+.login-container #login-toggle:checked~.login {
+    display: none;
+}
+
+.login-container #login-toggle:checked~.register {
+    display: block;
 }
 
 .user-subpost-title {
@@ -52,7 +130,6 @@ h1 {
 .user-subpost textarea {
     display: block;
     width: 320px;
-
 }
 
 .user-subpost button {
@@ -72,12 +149,16 @@ h1 {
     outline: 1px solid grey;
 }
 
-
 .subpost .user {
     font-size: 1rem;
 }
 
 @media (min-width:768px) {
+    body {
+        height: 100vh;
+        overflow: auto;
+    }
+
     .container {
         display:flex;
         max-width:700px;
@@ -89,6 +170,7 @@ h1 {
 
     aside {
         width: 200px;
+        margin-left: 8px;
     }
 }
 
