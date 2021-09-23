@@ -54,7 +54,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
 
             Response::from_html(response)
         }
-        Method::Put => {
+        Method::Post => {
             // Get post_id from path
             let path = req.path();
             let post_id = path.strip_prefix("/").unwrap(); //path always starts with /
@@ -98,7 +98,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
             }
             Response::error("Bad request, title and content must both be present.", 400)
         },
-        Method::Post => {
+        Method::Put => {
             todo!()
         }
 

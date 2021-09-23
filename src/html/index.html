@@ -5,14 +5,14 @@
 		<style>/*style*/</style>
 	</head>
 	<body>
-		<header><h1>threddit</h1></header>
+		<header><h1>treply</h1></header>
 		<section class="container">
 			<main>
 				<article class="post">
 					<h2><!--title--></h2> <span class="user">@<!--user--></span>
 					<p><!--content--></p>
 				</article>
-				<form class="user-subpost" method="PUT" action="<!--title-->" >
+				<form class="user-subpost" method="POST" action="<!--title-->" >
 					<span class="user-subpost-title"><!--title--><input name="title" maxlength="1" autocomplete="off"></span>
 					<textarea maxlength="512" name="content"></textarea>
 					<button type="submit">Post</button>
@@ -23,7 +23,7 @@
 			</main>
 			<aside>
 				<h3>Welcome!</h3>
-				<p>This is treply. It's a mega-forum where every post title contains the title of the post it's replying to. That might seem like a wierd gimmick.</p>
+				<p>This is treply. It's a mega-forum where every post title contains the title of the post it's replying to. That might seem like a wierd gimmick, and it really is.</p>
 				<section class="login-container">
 					<input id="login-toggle" type="checkbox">
 					<label for="login-toggle">
