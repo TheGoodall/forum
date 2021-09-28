@@ -1,3 +1,8 @@
+use argon2::{
+    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Argon2,
+};
+
 use futures::future::join_all;
 use uuid::Uuid;
 use worker::*;
@@ -110,5 +115,25 @@ pub async fn create_user<S: AsRef<str>>(
 ) -> Result<Option<String>> {
     let username = username.as_ref();
     let password = password.as_ref();
-    todo!()
+
+    let users_kv = env.kv("USERS")?;
+    users_kv
+        .put(username, hashPassword(password).expect("test2"))?
+        .execute()
+        .await?;
+    Ok(Some(username.to_string()))
+}
+
+fn hashPassword(password: &str) -> Result<String> {
+    let salt = SaltString::generate(&mut OsRng);
+
+    // Argon2 with default params (Argon2id v19)
+    let hasher = Argon2::default();
+
+    // Hash password to PHC string ($argon2id$v=19$...)
+    let password_hash = hasher
+        .hash_password_simple(password.as_bytes(), &salt)
+        .expect("Error with hash!")
+        .to_string();
+    Ok(password_hash)
 }

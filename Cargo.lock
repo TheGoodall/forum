@@ -12,6 +12,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "argon2"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca5162d1b961cb589a8ca08a2aa7cabc6341e05e0bf18d66a07697900b5d2ad0"
+dependencies = [
+ "blake2",
+ "password-hash",
+]
+
+[[package]]
 name = "async-trait"
 version = "0.1.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -27,6 +37,23 @@ name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
+
+[[package]]
+name = "base64ct"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "40a96587c05c810ddbb79e2674d519cff1379517e7b91d166dff7a7cc0e9af6e"
+
+[[package]]
+name = "blake2"
+version = "0.9.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0a4e37d16930f5459780f5621038b6382b9bb37c19016f39fb6b5808d831f174"
+dependencies = [
+ "crypto-mac",
+ "digest",
+ "opaque-debug",
+]
 
 [[package]]
 name = "bumpalo"
@@ -86,6 +113,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "crypto"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8364f6dbc4dc1c12c6fd536bb2da8a7ad345a7381b1d089acc6414b7ce4c2598"
+
+[[package]]
+name = "crypto-mac"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b584a330336237c1eecd3e94266efb216c56ed91225d634cb2991c5f3fd1aeab"
+dependencies = [
+ "generic-array",
+ "subtle",
+]
+
+[[package]]
+name = "digest"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3dd60d1080a57a05ab032377049e0591415d2b31afd7028356dbf3cc6dcb066"
+dependencies = [
+ "generic-array",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -105,9 +157,12 @@ dependencies = [
 name = "forum"
 version = "0.1.0"
 dependencies = [
+ "argon2",
  "cfg-if 0.1.10",
  "console_error_panic_hook",
+ "crypto",
  "futures",
+ "rand_core",
  "uuid",
  "worker",
 ]
@@ -204,6 +259,16 @@ dependencies = [
  "proc-macro-hack",
  "proc-macro-nested",
  "slab",
+]
+
+[[package]]
+name = "generic-array"
+version = "0.14.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "501466ecc8a30d1d3b7fc9229b122b2ce8ed6e9d9223f1138d4babb253e51817"
+dependencies = [
+ "typenum",
+ "version_check",
 ]
 
 [[package]]
@@ -315,12 +380,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "opaque-debug"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
+
+[[package]]
 name = "parse-zoneinfo"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f4ee19a3656dadae35a33467f9714f1228dd34766dbe49e10e656b5296867aea"
 dependencies = [
  "regex",
+]
+
+[[package]]
+name = "password-hash"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77e0b28ace46c5a396546bcf443bf422b57049617433d8854227352a4a9b24e7"
+dependencies = [
+ "base64ct",
+ "rand_core",
+ "subtle",
 ]
 
 [[package]]
@@ -369,6 +451,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3d0b9745dc2debf507c8422de05d7226cc1f0644216dfdfead988f9b1ab32a7"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "rand_core"
+version = "0.6.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
+dependencies = [
+ "getrandom",
 ]
 
 [[package]]
@@ -437,6 +528,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c307a32c1c5c437f38c7fd45d753050587732ba8628319fbdf12a7e289ccc590"
 
 [[package]]
+name = "subtle"
+version = "2.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
+
+[[package]]
 name = "syn"
 version = "1.0.76"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -481,6 +578,12 @@ name = "tinyvec_macros"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
+
+[[package]]
+name = "typenum"
+version = "1.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b63708a265f51345575b27fe43f9500ad611579e764c79edbc2037b1121959ec"
 
 [[package]]
 name = "ucd-util"
@@ -535,6 +638,12 @@ checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 dependencies = [
  "getrandom",
 ]
+
+[[package]]
+name = "version_check"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5fecdca9a5291cc2b8dcf7dc02453fee791a280f3743cb0905f8822ae463b3fe"
 
 [[package]]
 name = "wasi"
