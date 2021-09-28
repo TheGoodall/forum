@@ -58,9 +58,40 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
             // Get post_id from path
             let path = req.path();
             let post_id = path.strip_prefix("/").unwrap(); //path always starts with /
+            
+            // Check if login/register param is present; if so, process login/register input
+            let url = req.url()?;
+            let pairs = url.query_pairs();
 
             // get form data
             let form_data = req.form_data().await?;
+
+            let mut resp: Option<Result<Response>> = None;
+
+            // The second parameter in the url will always take precedent, so ?login&register will result in a register request
+            pairs.for_each(|kv| {
+                if kv.0 == "login" {
+                    if let Some(FormEntry::Field(email)) = form_data.get("email") {
+                        if let Some(FormEntry::Field(password)) = form_data.get("password") {
+                            let response = Response::empty();
+                            let mut headers = Headers::new();
+
+                            headers.set("Set-Cookie", "sessionId=DUMMY_SESSION_ID").unwrap();
+                            headers.set("Location", req.path().as_str()).unwrap();
+                            resp = Some(Ok(response.unwrap().with_status(303).with_headers(headers)));
+                            return
+                        }
+                    }
+                    resp = Some(Response::error("Bad request", 400));
+                } else if kv.0 == "register" {
+                    // TODO: parse form_data as register request and set resp
+                    resp = Some(Response::error("Come back soon! Development is BEaSt MOdE", 501));
+                }
+            });
+
+            if let Some(resp) = resp {
+                return resp;
+            }
 
             // unpack form data and ensure that the correct attributes exist.
             if let Some(FormEntry::Field(title)) = form_data.get("title") {
