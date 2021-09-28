@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use uuid::Uuid;
 use worker::*;
 mod db;
@@ -51,63 +53,53 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
             let post_id = path.strip_prefix("/").expect("Expected path to begin with /");
 
             // Check if login/register param is present; if so, process login/register input
-            let url = req.url()?;
-            let pairs = url.query_pairs();
+            let pairs = req.url()?.query_pairs();
+            let hashmap: HashMap<_, _> = pairs.to_owned().collect();
 
             // get form data
             let form_data = req.form_data().await?;
 
-            let mut resp: Option<Result<Response>> = None;
-
             // The second parameter in the url will always take precedent, so ?login&register will result in a register request
-            pairs.for_each(|kv| {
-                if kv.0 == "login" {
-                    if let Some(FormEntry::Field(email)) = form_data.get("email") {
-                        if let Some(FormEntry::Field(password)) = form_data.get("password") {
-                            let response = Response::empty();
-                            let mut headers = Headers::new();
+            if hashmap.contains_key("login") {
+                if let Some(FormEntry::Field(email)) = form_data.get("email") {
+                    if let Some(FormEntry::Field(password)) = form_data.get("password") {
+                        let response = Response::empty();
+                        let mut headers = Headers::new();
 
-                            let session_id = db::create_session(env, email, password).await.expect("Server failed to create session.");
-                            
-                            if let Some(session_id) = session_id {
-                                headers
-                                    .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
-                                    .unwrap();
-                                headers.set("Location", req.path().as_str()).unwrap();
-                                resp = Some(Ok(response.unwrap().with_status(303).with_headers(headers)));
-                                return;
-                            } else {
-                                resp = Some(Ok(response.unwrap().with_status(401)));
-                            }
+                        let session_id = db::create_session(env, email, password).await.expect("Server failed to create session.");
+                        
+                        if let Some(session_id) = session_id {
+                            headers
+                                .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
+                                .unwrap();
+                            headers.set("Location", req.path().as_str()).unwrap();
+                            return Ok(response.unwrap().with_status(303).with_headers(headers));
+                        } else {
+                            return Ok(response.unwrap().with_status(401));
                         }
                     }
-                    resp = Some(Response::error("Bad request", 400));
-                } else if kv.0 == "register" {
-                    if let Some(FormEntry::Field(email)) = form_data.get("email") {
-                        if let Some(FormEntry::Field(password)) = form_data.get("password") {
-                            let response = Response::empty();
-                            let mut headers = Headers::new();
-                            
-                            let session_id = db::create_user(env, email, password).await.expect("Server failed to create user.");
-                            
-                            if let Some(session_id) = session_id {
-                                headers
-                                    .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
-                                    .unwrap();
-                                headers.set("Location", req.path().as_str()).unwrap();
-                                resp = Some(Ok(response.unwrap().with_status(303).with_headers(headers)));
-                                return;
-                            } else {
-                                resp = Some(Ok(response.unwrap().with_status(400)));
-                            }
-                        }
-                    }
-                    resp = Some(Response::error("Bad request", 400));
                 }
-            });
-
-            if let Some(resp) = resp {
-                return resp;
+                return Response::error("Bad request", 400);
+            } else if hashmap.contains_key("register") {
+                if let Some(FormEntry::Field(email)) = form_data.get("email") {
+                    if let Some(FormEntry::Field(password)) = form_data.get("password") {
+                        let response = Response::empty();
+                        let mut headers = Headers::new();
+                        
+                        let session_id = db::create_user(env, email, password).await.expect("Server failed to create user.");
+                        
+                        if let Some(session_id) = session_id {
+                            headers
+                                .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
+                                .unwrap();
+                            headers.set("Location", req.path().as_str()).unwrap();
+                            return Ok(response.unwrap().with_status(303).with_headers(headers));
+                        } else {
+                            return Ok(response.unwrap().with_status(400));
+                        }
+                    }
+                }
+                return Response::error("Bad request", 400);
             }
 
             // unpack form data and ensure that the correct attributes exist.
