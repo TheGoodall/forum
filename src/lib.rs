@@ -53,7 +53,8 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
             let post_id = path.strip_prefix("/").expect("Expected path to begin with /");
 
             // Check if login/register param is present; if so, process login/register input
-            let pairs = req.url()?.query_pairs();
+            let url = req.url()?;
+            let pairs = url.query_pairs();
             let hashmap: HashMap<_, _> = pairs.to_owned().collect();
 
             // get form data
