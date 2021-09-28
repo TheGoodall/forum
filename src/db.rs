@@ -67,7 +67,7 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String
 /*
  *  add zeros to prefix to ensure it is in the correct format e.g. right-justified
  */
-pub fn get_prefix(post_id: &str, offset: usize) -> String {
+fn get_prefix(post_id: &str, offset: usize) -> String {
     let key_length = post_id.len();
     let zeros = " "
         .chars()
