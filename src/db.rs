@@ -1,5 +1,6 @@
 use futures::future::join_all;
 use worker::*;
+use uuid::Uuid;
 
 pub async fn get_content(env: &Env, post_id: &str) -> Result<Option<String>> {
     let prefix = get_prefix(post_id, 0);
@@ -77,9 +78,17 @@ fn get_prefix(post_id: &str, offset: usize) -> String {
     format!("{}{}", zeros, post_id)
 }
 
-pub fn create_session<S: AsRef<str>>(username: S,  password: S) -> Result<Option<String>> {
+pub async fn create_session<S: AsRef<str>>(env: Env, username: S,  password: S) -> Result<Option<String>> {
     let username = username.as_ref();
     let password = password.as_ref();
+
+    let users_kv = env.kv("USERS")?;
+    let sessions_kv = env.kv("USERS")?;
+    let user_data = users_kv.get(username).await?;
+
+    
+
+    let session_id = Uuid::new_v4().to_simple().to_string();
     todo!()
 }
 
@@ -87,13 +96,13 @@ pub struct User {
     email: String
 }
 
-pub fn get_session<S: AsRef<str>>(session_id: S) -> Result<Option<User>>{
+pub async fn get_session<S: AsRef<str>>(env: Env, session_id: S) -> Result<Option<User>>{
     let session_id = session_id.as_ref();
     todo!()
 }
 
 
-pub fn create_user<S: AsRef<str>>(username: S,  password: S) -> Result<Option<String>> {
+pub async fn create_user<S: AsRef<str>>(env: Env, username: S,  password: S) -> Result<Option<String>> {
     let username = username.as_ref();
     let password = password.as_ref();
     todo!()
