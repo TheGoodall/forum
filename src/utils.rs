@@ -1,5 +1,5 @@
 use cfg_if::cfg_if;
-use worker::{console_log,Request,Date};
+use worker::{console_log, Date, Request};
 
 cfg_if! {
     // https://github.com/rustwasm/console_error_panic_hook#readme

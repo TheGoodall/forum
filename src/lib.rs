@@ -1,3 +1,4 @@
+use uuid::Uuid;
 use worker::*;
 mod db;
 mod utils;
@@ -66,8 +67,10 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                             let response = Response::empty();
                             let mut headers = Headers::new();
 
+                            let session_id = Uuid::new_v4().to_simple().to_string();
+
                             headers
-                                .set("Set-Cookie", "sessionId=DUMMY_SESSION_ID")
+                                .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
                                 .unwrap();
                             headers.set("Location", req.path().as_str()).unwrap();
                             resp =
