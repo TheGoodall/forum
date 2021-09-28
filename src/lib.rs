@@ -67,7 +67,9 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                             let response = Response::empty();
                             let mut headers = Headers::new();
 
-                            let session_id = Uuid::new_v4().to_simple().to_string();
+                            let session_id = db::create_session(email, password);
+
+                            //if (session_id)
 
                             headers
                                 .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
@@ -80,11 +82,23 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                     }
                     resp = Some(Response::error("Bad request", 400));
                 } else if kv.0 == "register" {
-                    // TODO: parse form_data as register request and set resp
-                    resp = Some(Response::error(
-                        "Come back soon! Development is BEaSt MOdE",
-                        501,
-                    ));
+                    if let Some(FormEntry::Field(email)) = form_data.get("email") {
+                        if let Some(FormEntry::Field(password)) = form_data.get("password") {
+                            let response = Response::empty();
+                            let mut headers = Headers::new();
+                            
+                            // create_user(email, password) 
+                            
+                            headers
+                                //.set("Set-Cookie", format!("sessionId={}", session_id).as_str())
+                                .unwrap();
+                            headers.set("Location", req.path().as_str()).unwrap();
+                            resp =
+                                Some(Ok(response.unwrap().with_status(303).with_headers(headers)));
+                            return;
+                        }
+                    }
+                    resp = Some(Response::error("Bad request", 400));
                 }
             });
 
