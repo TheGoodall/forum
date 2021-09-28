@@ -67,17 +67,18 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                             let response = Response::empty();
                             let mut headers = Headers::new();
 
-                            let session_id = db::create_session(email, password);
-
-                            //if (session_id)
-
-                            headers
-                                .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
-                                .unwrap();
-                            headers.set("Location", req.path().as_str()).unwrap();
-                            resp =
-                                Some(Ok(response.unwrap().with_status(303).with_headers(headers)));
-                            return;
+                            let session_id = db::create_session(env, email, password).await.expect("Server failed to create session.");
+                            
+                            if let Some(session_id) = session_id {
+                                headers
+                                    .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
+                                    .unwrap();
+                                headers.set("Location", req.path().as_str()).unwrap();
+                                resp = Some(Ok(response.unwrap().with_status(303).with_headers(headers)));
+                                return;
+                            } else {
+                                resp = Some(Ok(response.unwrap().with_status(401)));
+                            }
                         }
                     }
                     resp = Some(Response::error("Bad request", 400));
@@ -87,15 +88,18 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                             let response = Response::empty();
                             let mut headers = Headers::new();
                             
-                            // create_user(email, password) 
+                            let session_id = db::create_user(env, email, password).await.expect("Server failed to create user.");
                             
-                            headers
-                                //.set("Set-Cookie", format!("sessionId={}", session_id).as_str())
-                                .unwrap();
-                            headers.set("Location", req.path().as_str()).unwrap();
-                            resp =
-                                Some(Ok(response.unwrap().with_status(303).with_headers(headers)));
-                            return;
+                            if let Some(session_id) = session_id {
+                                headers
+                                    .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
+                                    .unwrap();
+                                headers.set("Location", req.path().as_str()).unwrap();
+                                resp = Some(Ok(response.unwrap().with_status(303).with_headers(headers)));
+                                return;
+                            } else {
+                                resp = Some(Ok(response.unwrap().with_status(400)));
+                            }
                         }
                     }
                     resp = Some(Response::error("Bad request", 400));
