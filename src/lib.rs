@@ -14,7 +14,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
 
             // Get post id from path
             let path = req.path();
-            let post_id = path.strip_prefix("/").unwrap(); //path always starts with /
+            let post_id = path.strip_prefix("/").expect("Expected path to begin with /");
 
             // get content, return error if page doesn't exists
             let content = match db::get_content(&env, post_id).await? {
@@ -48,7 +48,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
         Method::Post => {
             // Get post_id from path
             let path = req.path();
-            let post_id = path.strip_prefix("/").unwrap(); //path always starts with /
+            let post_id = path.strip_prefix("/").expect("Expected path to begin with /");
 
             // Check if login/register param is present; if so, process login/register input
             let url = req.url()?;
