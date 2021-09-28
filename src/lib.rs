@@ -16,7 +16,9 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
 
             // Get post id from path
             let path = req.path();
-            let post_id = path.strip_prefix("/").expect("Expected path to begin with /");
+            let post_id = path
+                .strip_prefix("/")
+                .expect("Expected path to begin with /");
 
             // get content, return error if page doesn't exists
             let content = match db::get_content(&env, post_id).await? {
@@ -50,7 +52,9 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
         Method::Post => {
             // Get post_id from path
             let path = req.path();
-            let post_id = path.strip_prefix("/").expect("Expected path to begin with /");
+            let post_id = path
+                .strip_prefix("/")
+                .expect("Expected path to begin with /");
 
             // Check if login/register param is present; if so, process login/register input
             let url = req.url()?;
@@ -67,8 +71,10 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                         let response = Response::empty();
                         let mut headers = Headers::new();
 
-                        let session_id = db::create_session(env, email, password).await.expect("Server failed to create session.");
-                        
+                        let session_id = db::create_session(env, email, password)
+                            .await
+                            .expect("Server failed to create session.");
+
                         if let Some(session_id) = session_id {
                             headers
                                 .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
@@ -86,9 +92,11 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                     if let Some(FormEntry::Field(password)) = form_data.get("password") {
                         let response = Response::empty();
                         let mut headers = Headers::new();
-                        
-                        let session_id = db::create_user(env, email, password).await.expect("Server failed to create user.");
-                        
+
+                        let session_id = db::create_user(env, email, password)
+                            .await
+                            .expect("Server failed to create user.");
+
                         if let Some(session_id) = session_id {
                             headers
                                 .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
