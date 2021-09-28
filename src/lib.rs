@@ -1,5 +1,5 @@
-use futures::future::join_all;
 use worker::*;
+mod db;
 mod utils;
 
 fn log_request(req: &Request) {
@@ -26,7 +26,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
             let post_id = path.strip_prefix("/").unwrap(); //path always starts with /
 
             // get content, return error if page doesn't exists
-            let content = match get_content(&env, post_id).await? {
+            let content = match db::get_content(&env, post_id).await? {
                 None => {
                     return Response::error("Page Not Found", 404);
                 }
@@ -34,7 +34,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
             };
 
             // get all replies to post
-            let replies = get_replies(&env, post_id).await?;
+            let replies = db::get_replies(&env, post_id).await?;
 
             // Render replies
             let replies_html = replies
@@ -58,7 +58,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
             // Get post_id from path
             let path = req.path();
             let post_id = path.strip_prefix("/").unwrap(); //path always starts with /
-            
+
             // Check if login/register param is present; if so, process login/register input
             let url = req.url()?;
             let pairs = url.query_pairs();
@@ -76,16 +76,22 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                             let response = Response::empty();
                             let mut headers = Headers::new();
 
-                            headers.set("Set-Cookie", "sessionId=DUMMY_SESSION_ID").unwrap();
+                            headers
+                                .set("Set-Cookie", "sessionId=DUMMY_SESSION_ID")
+                                .unwrap();
                             headers.set("Location", req.path().as_str()).unwrap();
-                            resp = Some(Ok(response.unwrap().with_status(303).with_headers(headers)));
-                            return
+                            resp =
+                                Some(Ok(response.unwrap().with_status(303).with_headers(headers)));
+                            return;
                         }
                     }
                     resp = Some(Response::error("Bad request", 400));
                 } else if kv.0 == "register" {
                     // TODO: parse form_data as register request and set resp
-                    resp = Some(Response::error("Come back soon! Development is BEaSt MOdE", 501));
+                    resp = Some(Response::error(
+                        "Come back soon! Development is BEaSt MOdE",
+                        501,
+                    ));
                 }
             });
 
@@ -105,20 +111,20 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                     }
                     // Ensure Ensure title is a valid char
                     // Ensure path exists
-                    if let None = get_content(&env, post_id).await? {
-                        return Response::error("Error: Can only reply to a post that exists" , 400);
+                    if let None = db::get_content(&env, post_id).await? {
+                        return Response::error("Error: Can only reply to a post that exists", 400);
                     }
                     // Ensure fulltitle doesn't exist
-                    if let Some(_) = get_content(&env, fulltitle.as_str()).await? {
+                    if let Some(_) = db::get_content(&env, fulltitle.as_str()).await? {
                         return Response::error("Error: post already exists", 409);
                     }
                     // Ensure total length is <= 512
                     if fulltitle.len() >= 512 {
-                        return Response::error("Error: max length has been reached", 400)
+                        return Response::error("Error: max length has been reached", 400);
                     }
 
                     // actually save new post content
-                    post_content(&env, fulltitle.as_str(), content.as_str()).await?;
+                    db::post_content(&env, fulltitle.as_str(), content.as_str()).await?;
 
                     // create reponse to redirect user to new page
                     let response = Response::empty();
@@ -128,87 +134,11 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                 }
             }
             Response::error("Bad request, title and content must both be present.", 400)
-        },
+        }
         Method::Put => {
             todo!()
         }
 
         _ => Response::error("Only GET, PUT and POST methods are allowed", 405),
     }
-}
-
-async fn get_content(env: &Env, post_id: &str) -> Result<Option<String>> {
-    let prefix = get_prefix(post_id, 0);
-
-    // get data
-    let data = env.kv("POSTS")?.get(prefix.as_str()).await?;
-
-    // convert to string and return
-    let content: Option<String>;
-    if let Some(contents) = data {
-        content = Some(contents.as_string());
-    } else {
-        content = None;
-    }
-
-    Ok(content)
-}
-
-async fn post_content(env: &Env, post_id: &str, contents: &str) -> Result<()> {
-    let kv = env.kv("POSTS")?;
-    let prefix = get_prefix(post_id, 0);
-    kv.put(prefix.as_str(), contents)?.execute().await?;
-    Ok(())
-}
-
-async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String)>> {
-    let limit = 50;
-    let prefix = get_prefix(post_id, 1);
-
-    // get list of keys with correct prefix
-    let keys = env
-        .kv("POSTS")?
-        .list()
-        .prefix(prefix)
-        .limit(limit)
-        .execute()
-        .await?;
-    let kv = env.kv("POSTS")?;
-
-    // get content for each key
-    let replies = keys
-        .keys
-        .iter()
-        .filter(|key| {
-            if let Some(_) = key.name.rfind(|c: char| !c.is_whitespace()) {
-                true
-            } else {
-                false
-            }
-        })
-        .map(|key| {
-            let key_name = key.name.as_str();
-            let body = kv.get(key_name);
-            async move {
-                (
-                    key_name.trim_start().to_string(),
-                    body.await.unwrap().unwrap().as_string(),
-                )
-            }
-        });
-    let test = join_all(replies).await;
-    Ok(test)
-}
-
-/*
- *  add zeros to prefix to ensure it is in the correct format e.g. right-justified
- */
-fn get_prefix(post_id: &str, offset: usize) -> String {
-    let key_length = post_id.len();
-    let zeros = " "
-        .chars()
-        .cycle()
-        .take((512 - key_length) - offset)
-        .collect::<String>();
-    format!("{}{}", zeros, post_id)
 }
