@@ -76,3 +76,25 @@ fn get_prefix(post_id: &str, offset: usize) -> String {
         .collect::<String>();
     format!("{}{}", zeros, post_id)
 }
+
+pub fn create_session<S: AsRef<str>>(username: S,  password: S) -> Result<Option<String>> {
+    let username = username.as_ref();
+    let password = password.as_ref();
+    todo!()
+}
+
+pub struct User {
+    email: String
+}
+
+pub fn get_session<S: AsRef<str>>(session_id: S) -> Result<Option<User>>{
+    let session_id = session_id.as_ref();
+    todo!()
+}
+
+
+pub fn create_user<S: AsRef<str>>(username: S,  password: S) -> Result<Option<String>> {
+    let username = username.as_ref();
+    let password = password.as_ref();
+    todo!()
+}
