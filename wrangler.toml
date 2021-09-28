@@ -7,7 +7,9 @@ compatibility_flags = [ "formdata_parser_supports_files" ] # required
 account_id = "35731bea8d79eb5550079b4e017b7a33"
 
 kv_namespaces = [
-  { binding = "POSTS", id = "b5496af25e96469c9c31977dbdefa867", preview_id = "b5496af25e96469c9c31977dbdefa867" }
+  { binding = "POSTS", id = "b5496af25e96469c9c31977dbdefa867", preview_id = "b5496af25e96469c9c31977dbdefa867" },
+  { binding = "SESSIONS", id = "d379b2819de248b3a2d432462564e0c7", preview_id = "d379b2819de248b3a2d432462564e0c7" },
+  { binding = "USERS", id = "c4bc2f8c23184ec4999d5115158618af", preview_id = "c4bc2f8c23184ec4999d5115158618af" }
 ]
 
 [vars]
