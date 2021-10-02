@@ -102,35 +102,24 @@ pub async fn create_session<S: AsRef<str>>(
     todo!()
 }
 
-pub struct User {
-    email: String,
-}
-
-pub struct UserData {
-    password: String,
-}
-
-async fn get_user<S: AsRef<str>>(env: Env, user_id: S) -> Result<Option<User>> {
+async fn get_user<S: AsRef<str>>(env: Env, user_id: S) -> Result<Option<user_obj::UserAccount>> {
     let user_id = user_id.as_ref();
     let users_kv = env.kv("USERS")?;
     let user_data = users_kv.get(user_id).await?;
-    let user_object = match user_data {
+    match user_data {
         Some(data) => {
-            let deserialised = deserialise_user_data(data.as_string());
-            Ok(Some(User {
-                email: user_id.to_string(),
-            }))
+            let deserialised: user_obj::UserAccount =
+                serde_json::from_str(data.as_string().as_str())?;
+            Ok(Some(deserialised))
         }
-        None => return Ok(None),
-    };
-    user_object
+        None => Ok(None),
+    }
 }
 
-fn deserialise_user_data<S: AsRef<str>>(user_data: S) -> UserData {
-    todo!()
-}
-
-pub async fn get_session<S: AsRef<str>>(env: Env, session_id: S) -> Result<Option<User>> {
+pub async fn get_session<S: AsRef<str>>(
+    env: Env,
+    session_id: S,
+) -> Result<Option<user_obj::UserAccount>> {
     let session_id = session_id.as_ref();
     todo!()
 }
