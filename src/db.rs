@@ -95,11 +95,16 @@ pub async fn create_session<S: AsRef<str>>(
         None => {
             return Ok(None);
         }
-        Some(user) => {}
+        Some(user) => {
+            if crypto_helpers::verify_password(password, &user.hash) {
+                let session_id = Uuid::new_v4().to_simple().to_string();
+                sessions_kv.put(&session_id, username)?.execute().await?;
+                return Ok(Some(session_id));
+            } else {
+                return Ok(None);
+            }
+        }
     }
-
-    let session_id = Uuid::new_v4().to_simple().to_string();
-    todo!()
 }
 
 async fn get_user<S: AsRef<str>>(env: Env, user_id: S) -> Result<Option<user_obj::UserAccount>> {
