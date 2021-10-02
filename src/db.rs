@@ -1,5 +1,7 @@
 use super::crypto_helpers;
+use super::user_obj;
 use futures::future::join_all;
+use serde_json;
 use uuid::Uuid;
 use worker::*;
 
@@ -112,10 +114,13 @@ pub async fn create_user<S: AsRef<str>>(
     let username = username.as_ref();
     let password = password.as_ref();
 
+    let hash = crypto_helpers::hash_password(password);
+    let acc = user_obj::UserAccount {
+        hash: hash.to_string(),
+    };
+    let serialized = serde_json::to_string(&acc).unwrap();
+
     let users_kv = env.kv("USERS")?;
-    users_kv
-        .put(username, crypto_helpers::hash_password(password))?
-        .execute()
-        .await?;
+    users_kv.put(username, serialized)?.execute().await?;
     Ok(Some(username.to_string()))
 }
