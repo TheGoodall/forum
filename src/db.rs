@@ -82,7 +82,7 @@ fn get_prefix(post_id: &str, offset: usize) -> String {
 }
 
 pub async fn create_session<S: AsRef<str>>(
-    env: Env,
+    env: &Env,
     username: S,
     password: S,
 ) -> Result<Option<String>> {
@@ -107,7 +107,7 @@ pub async fn create_session<S: AsRef<str>>(
     }
 }
 
-async fn get_user<S: AsRef<str>>(env: Env, user_id: S) -> Result<Option<user_obj::UserAccount>> {
+async fn get_user<S: AsRef<str>>(env: &Env, user_id: S) -> Result<Option<user_obj::UserAccount>> {
     let user_id = user_id.as_ref();
     let users_kv = env.kv("USERS")?;
     let user_data = users_kv.get(user_id).await?;
