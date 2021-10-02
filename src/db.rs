@@ -86,9 +86,14 @@ pub async fn create_session<S: AsRef<str>>(
     let username = username.as_ref();
     let password = password.as_ref();
 
-    let users_kv = env.kv("USERS")?;
-    let sessions_kv = env.kv("USERS")?;
-    let user_data = users_kv.get(username).await?;
+    let sessions_kv = env.kv("SESSIONS")?;
+    let user_data = get_user(env, username).await?;
+    match user_data {
+        None => {return Ok(None);}
+        Some(user) => {
+                        
+        }
+    }
 
     let session_id = Uuid::new_v4().to_simple().to_string();
     todo!()
@@ -97,6 +102,31 @@ pub async fn create_session<S: AsRef<str>>(
 pub struct User {
     email: String,
 }
+
+pub struct UserData {
+    password: String,
+}
+
+
+async fn get_user<S: AsRef<str>>(env: Env, user_id: S) -> Result<Option<User>> {
+    let user_id = user_id.as_ref();
+    let users_kv = env.kv("USERS")?;
+    let user_data = users_kv.get(user_id).await?;
+    let user_object = match user_data {
+        Some(data) => {
+            let deserialised = deserialise_user_data(data.as_string());
+            Ok(Some(User{email: user_id.to_string()}))
+        }
+        None => {return Ok(None)}
+    };
+    user_object
+}
+
+fn deserialise_user_data<S: AsRef<str>>(user_data: S) -> UserData {
+    todo!()
+}
+
+
 
 pub async fn get_session<S: AsRef<str>>(env: Env, session_id: S) -> Result<Option<User>> {
     let session_id = session_id.as_ref();
