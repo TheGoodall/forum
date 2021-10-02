@@ -18,6 +18,8 @@ futures = "0.3.17"
 uuid = { version = "0.8", features = ["wasm-bindgen", "v4"] }
 argon2 = "0.2"
 rand_core = { version = "0.6", features = ["std"] }
+serde = "1.0.130"
+serde_json = "1.0.68"
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.

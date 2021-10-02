@@ -4,6 +4,7 @@ use uuid::Uuid;
 use worker::*;
 mod crypto_helpers;
 mod db;
+mod user_obj;
 mod utils;
 
 #[event(fetch)]
