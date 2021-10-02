@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use uuid::Uuid;
 use worker::*;
+mod crypto_helpers;
 mod db;
 mod utils;
 
