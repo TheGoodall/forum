@@ -1,54 +1,70 @@
 <html>
-	<head>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="description" content="threddit - the unstructured mega-forum">
-		<style>/*style*/</style>
-	</head>
-	<body>
-		<header><h1>treply</h1></header>
-		<section class="container">
-			<main>
-				<article class="post">
-					<h2><!--title--></h2> <span class="user">@<!--user--></span>
-					<p><!--content--></p>
-				</article>
-				<form class="user-subpost" method="POST" action="<!--title-->" >
-					<span class="user-subpost-title"><!--title--><input name="title" maxlength="1" autocomplete="off"></span>
-					<textarea maxlength="512" name="content"></textarea>
-					<button type="submit">Post</button>
-				</form>
-				<div class="subpost-group">
-					<!--replies-->
-				</div>
-			</main>
-			<aside>
-				<h3>Welcome!</h3>
-				<p>This is treply. It's a mega-forum where every post title contains the title of the post it's replying to. That might seem like a wierd gimmick, and it really is.</p>
-				<section class="login-container">
-					<input id="login-toggle" type="checkbox">
-					<label for="login-toggle">
-						<div class="login-toggle-login">Login</div>
-						<div class="login-toggle-register">Register</div>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="threddit - the unstructured mega-forum">
+	<style>
+		/*style*/
+	</style>
+</head>
+
+<body>
+	<header>
+		<h1>treply</h1>
+	</header>
+	<section class="container">
+		<main>
+			<article class="post">
+				<h2>
+					<!--title-->
+				</h2> <span class="user">@
+					<!--user--></span>
+				<p>
+					<!--content-->
+				</p>
+			</article>
+			<form class="user-subpost" method="POST" action="<!--title-->">
+				<span class="user-subpost-title">
+					<!--title--><input name="title" maxlength="1" autocomplete="off"></span>
+				<textarea maxlength="512" name="content"></textarea>
+				<button type="submit">Post</button>
+			</form>
+			<div class="subpost-group">
+				<!--replies-->
+			</div>
+		</main>
+		<aside>
+			<h3>Welcome!</h3>
+			<p>This is treply. It's a mega-forum where every post title contains the title of the post it's replying to.
+				That might seem like a wierd gimmick, and it really is.</p>
+			<section class="login-container">
+				<input id="login-toggle" type="checkbox">
+				<label for="login-toggle">
+					<div class="login-toggle-login">Login</div>
+					<div class="login-toggle-register">Register</div>
+				</label>
+				<form class="login" method="POST" action="<!--title-->?login">
+					<label>
+						<input name="email" type="email" placeholder="Email">
+						<input name="password" type="password" placeholder="Password">
+						<button type="submit">Login</button>
+						<!--loginError-->
 					</label>
-					<form class="login" method="POST" action="<!--title-->?login">
-						<label>
-							<input name="email" type="email" placeholder="Email">
-							<input name="password" type="password" placeholder="Password">
-							<button type="submit">Login</button>
-						</label>
-					</form>
-					<form class="register" method="POST" action="<!--title-->?register">
-						<label>
-							<input name="email" placeholder="Email"/>
-							<input name="password" placeholder="Password"/>
-							<button type="submit">Register</button>
-						</label>
-					</form>
-				</section>
-			</aside>
-		
-		</section>
-		
-		<footer>Copyright &copy; James & Jamie<br><small>Want to advertise here? Contact Jamie <em>discreetly</em></small></footer>
-	</body>
+				</form>
+				<form class="register" method="POST" action="<!--title-->?register">
+					<label>
+						<input name="email" placeholder="Email" />
+						<input name="password" placeholder="Password" />
+						<button type="submit">Register</button>
+					</label>
+				</form>
+			</section>
+		</aside>
+
+	</section>
+
+	<footer>Copyright &copy; James & Jamie<br><small>Want to advertise here? Contact Jamie <em>discreetly</em></small>
+	</footer>
+</body>
+
 </html>

@@ -7,50 +7,56 @@ mod db;
 mod user_obj;
 mod utils;
 
+async fn renderPage(path: &str, env: Env, isLoginError: bool) -> Result<Response> {
+    let style = include_str!("html/index.css");
+
+    // Get post id from path
+    let post_id = path
+        .strip_prefix("/")
+        .expect("Expected path to begin with /");
+
+    // get content, return error if page doesn't exists
+    let content = match db::get_content(&env, post_id).await? {
+        None => {
+            return Response::error("Page Not Found", 404);
+        }
+        Some(content) => content,
+    };
+
+    // get all replies to post
+    let replies = db::get_replies(&env, post_id).await?;
+
+    // Render replies
+    let replies_html = replies
+        .iter()
+        .map(|(id, content)| {
+            include_str!("html/templates/post.html")
+                .replace("<!--title-->", id)
+                .replace("<!--content-->", content)
+        })
+        .collect::<String>();
+    // render page
+
+    let response = include_str!("html/index.html")
+        .replace("/*style*/", style)
+        .replace("<!--title-->", post_id)
+        .replace("<!--content-->", content.as_str())
+        .replace("<!--replies-->", replies_html.as_str());
+
+    let html = match isLoginError {
+        true => response.replace("<!--loginError-->", "Invalid Username or password"),
+        false => response.replace("<!--loginError-->", ""),
+    };
+    Response::from_html(html)
+}
+
 #[event(fetch)]
 pub async fn main(mut req: Request, env: Env) -> Result<Response> {
     utils::log_request(&req);
     utils::set_panic_hook();
 
     match req.method() {
-        Method::Get => {
-            let style = include_str!("html/index.css");
-
-            // Get post id from path
-            let path = req.path();
-            let post_id = path
-                .strip_prefix("/")
-                .expect("Expected path to begin with /");
-
-            // get content, return error if page doesn't exists
-            let content = match db::get_content(&env, post_id).await? {
-                None => {
-                    return Response::error("Page Not Found", 404);
-                }
-                Some(content) => content,
-            };
-
-            // get all replies to post
-            let replies = db::get_replies(&env, post_id).await?;
-
-            // Render replies
-            let replies_html = replies
-                .iter()
-                .map(|(id, content)| {
-                    include_str!("html/templates/post.html")
-                        .replace("<!--title-->", id)
-                        .replace("<!--content-->", content)
-                })
-                .collect::<String>();
-            // render page
-            let response = include_str!("html/index.html")
-                .replace("/*style*/", style)
-                .replace("<!--title-->", post_id)
-                .replace("<!--content-->", content.as_str())
-                .replace("<!--replies-->", replies_html.as_str());
-
-            Response::from_html(response)
-        }
+        Method::Get => renderPage(&req.path(), env, false).await,
         Method::Post => {
             // Get post_id from path
             let path = req.path();
@@ -73,7 +79,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                         let response = Response::empty();
                         let mut headers = Headers::new();
 
-                        let session_id = db::create_session(env, email, password)
+                        let session_id = db::create_session(&env, email, password)
                             .await
                             .expect("Server failed to create session.");
 
@@ -84,7 +90,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                             headers.set("Location", req.path().as_str()).unwrap();
                             return Ok(response.unwrap().with_status(303).with_headers(headers));
                         } else {
-                            return Ok(response.unwrap().with_status(401));
+                            return Ok(renderPage(&path, env, true).await?.with_status(200));
                         }
                     }
                 }
