@@ -143,6 +143,15 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                         return Response::error("Error: max length has been reached", 400);
                     }
 
+                    match req.headers().get("Cookie")? {
+                        None => {
+                            return Ok(Response::empty().unwrap().with_status(400));
+                        }
+                        Some(cookies) => {
+                            let map: HashMap<_, _> = cookies.split(";").collect();
+                        }
+                    }
+
                     // actually save new post content
                     db::post_content(&env, fulltitle.as_str(), content.as_str()).await?;
 
