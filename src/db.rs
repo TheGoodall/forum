@@ -26,17 +26,11 @@ pub async fn post_content(
     env: &Env,
     post_id: &str,
     contents: &str,
-    session_id: &str,
 ) -> Result<bool> {
-    match get_session(env, session_id).await? {
-        None => Ok(false),
-        Some(user) => {
-            let kv = env.kv("POSTS")?;
-            let prefix = get_prefix(post_id, 0);
-            kv.put(prefix.as_str(), contents)?.execute().await?;
-            Ok(true)
-        }
-    }
+    let kv = env.kv("POSTS")?;
+    let prefix = get_prefix(post_id, 0);
+    kv.put(prefix.as_str(), contents)?.execute().await?;
+    Ok(true)
 }
 
 pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String)>> {
