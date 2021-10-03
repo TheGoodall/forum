@@ -99,6 +99,13 @@ pub async fn create_session<S: AsRef<str>>(
     let username = username.as_ref();
     let password = password.as_ref();
 
+    let expiry: u64 = env
+        .var("SESSION_EXPIRY")?
+        .to_string()
+        .parse::<u64>()
+        .expect("Error: Could not parse expiry environment variable");
+
+    let sessions_kv = env.kv("SESSIONS")?;
     let user_data = get_user(env, username).await?;
     match get_user(env, username).await? {
         None => {
