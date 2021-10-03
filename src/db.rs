@@ -30,7 +30,6 @@ pub async fn post_content(env: &Env, post_id: &str, contents: &str) -> Result<()
 }
 
 pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String)>> {
-    let limit = 50;
     let prefix = get_prefix(post_id, 1);
 
     // get list of keys with correct prefix
@@ -38,7 +37,6 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String
         .kv("POSTS")?
         .list()
         .prefix(prefix)
-        .limit(limit)
         .execute()
         .await?;
     let kv = env.kv("POSTS")?;
