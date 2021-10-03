@@ -64,8 +64,7 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String
                 )
             }
         });
-    let test = join_all(replies).await;
-    Ok(test)
+    Ok(join_all(replies).await)
 }
 
 /*
