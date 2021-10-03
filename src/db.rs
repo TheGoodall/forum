@@ -89,24 +89,44 @@ pub async fn create_session<S: AsRef<str>>(
     let username = username.as_ref();
     let password = password.as_ref();
 
-    let expiry: u64 = env.var("SESSION_EXPIRY")?.to_string().parse::<u64>().expect("Error: Could not parse expiry environment variable");
-
-    let sessions_kv = env.kv("SESSIONS")?;
     let user_data = get_user(env, username).await?;
-    match user_data {
+    match get_user(env, username).await? {
         None => {
             return Ok(None);
         }
         Some(user) => {
             if crypto_helpers::verify_password(password, &user.hash) {
                 let session_id = Uuid::new_v4().to_simple().to_string();
-                sessions_kv.put(&session_id, username)?.expiration_ttl(expiry).execute().await?;
+                update_session(env, username, &session_id).await?;
+
                 return Ok(Some(session_id));
             } else {
                 return Ok(None);
             }
         }
     }
+}
+
+async fn update_session<S: AsRef<str>, S2: AsRef<str>>(
+    env: &Env,
+    username: S,
+    session_id: S2,
+) -> Result<()> {
+    let sessions_kv = env.kv("SESSIONS")?;
+
+    let expiry: u64 = env
+        .var("SESSION_EXPIRY")?
+        .to_string()
+        .parse::<u64>()
+        .expect("Error: Could not parse expiry environment variable");
+
+    sessions_kv
+        .put(session_id.as_ref(), username.as_ref())?
+        .expiration_ttl(expiry)
+        .execute()
+        .await?;
+
+    Ok(())
 }
 
 async fn get_user<S: AsRef<str>>(env: &Env, user_id: S) -> Result<Option<user_obj::UserAccount>> {
