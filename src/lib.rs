@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use worker::*;
 mod crypto_helpers;
 mod db;
+mod render;
 mod user_obj;
 mod utils;
-mod render;
 use render::render_page;
 
 #[event(fetch)]

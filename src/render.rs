@@ -1,5 +1,5 @@
-use worker::*;
 use super::db;
+use worker::*;
 
 pub async fn render_page(path: &str, env: Env, is_login_error: bool) -> Result<Response> {
     let style = include_str!("html/index.css");
