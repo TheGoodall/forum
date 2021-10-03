@@ -22,11 +22,21 @@ pub async fn get_content(env: &Env, post_id: &str) -> Result<Option<String>> {
     Ok(content)
 }
 
-pub async fn post_content(env: &Env, post_id: &str, contents: &str) -> Result<()> {
-    let kv = env.kv("POSTS")?;
-    let prefix = get_prefix(post_id, 0);
-    kv.put(prefix.as_str(), contents)?.execute().await?;
-    Ok(())
+pub async fn post_content(
+    env: &Env,
+    post_id: &str,
+    contents: &str,
+    session_id: &str,
+) -> Result<bool> {
+    match get_session(env, session_id).await? {
+        None => Ok(false),
+        Some(user) => {
+            let kv = env.kv("POSTS")?;
+            let prefix = get_prefix(post_id, 0);
+            kv.put(prefix.as_str(), contents)?.execute().await?;
+            Ok(true)
+        }
+    }
 }
 
 pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String)>> {
@@ -144,11 +154,21 @@ async fn get_user<S: AsRef<str>>(env: &Env, user_id: S) -> Result<Option<user_ob
 }
 
 pub async fn get_session<S: AsRef<str>>(
-    env: Env,
+    env: &Env,
     session_id: S,
 ) -> Result<Option<user_obj::UserAccount>> {
     let session_id = session_id.as_ref();
-    todo!()
+
+    let sessions_kv = env.kv("SESSIONS")?;
+
+    match sessions_kv.get(session_id).await? {
+        None => Ok(None),
+        Some(user_id) => {
+            let user_id = user_id.as_string();
+            update_session(env, &user_id, session_id).await?;
+            get_user(env, &user_id).await
+        }
+    }
 }
 
 pub async fn create_user<S: AsRef<str>>(
