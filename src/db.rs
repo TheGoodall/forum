@@ -45,6 +45,8 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String
     let replies = keys
         .keys
         .iter()
+        // Ignore the case when the entire key is whitespace e.g. root post (root post is never a
+        // child of another post)
         .filter(|key| {
             if let Some(_) = key.name.rfind(|c: char| !c.is_whitespace()) {
                 true
@@ -62,11 +64,12 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String
                 )
             }
         });
+    // Perform all IO async
     Ok(join_all(replies).await)
 }
 
 /*
- *  add zeros to prefix to ensure it is in the correct format e.g. right-justified
+ *  add zeros to prefix to ensure post_id is in the correct format e.g. right-justified
  */
 fn get_prefix(post_id: &str, offset: usize) -> String {
     let key_length = post_id.len();
@@ -102,7 +105,9 @@ pub async fn create_session<S: AsRef<str>>(
         }
     }
 }
-
+/* 
+ * Write the session to the kv store with the correct expiry time
+ * */
 async fn update_session<S: AsRef<str>, S2: AsRef<str>>(
     env: &Env,
     username: S,
