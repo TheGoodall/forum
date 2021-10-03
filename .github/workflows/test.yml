@@ -16,12 +16,12 @@ jobs:
       uses: actions/cache@v2
       with:
         path: |
-          ~/build
-          ~/target
-          $HOME/.cargo/bin/
-          $HOME/.cargo/registry/index/
-          $HOME/.cargo/registry/cache/
-          $HOME/.cargo/git/db/
+          ${{ github.workspace }}/build
+          ${{ github.workspace }}/target
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
         key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
     - name: Build
       run: cargo build --verbose
