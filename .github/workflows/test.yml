@@ -1,4 +1,4 @@
-name: test
+name: develop
 
 on:
   push:
@@ -12,7 +12,18 @@ jobs:
     name: Test
     steps:
     - uses: actions/checkout@v2
+    - name: Cache Build artifacts
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/build
+          ~/target
+        key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
     - name: Build
       run: cargo build --verbose
     - name: Test
       run: cargo test
+    - name: Clippy
+      run: cargo clippy -- -D warnings
+    - name: FMT
+      run: cargo fmt -- --check
