@@ -143,7 +143,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                         return Response::error("Error: max length has been reached", 400);
                     }
 
-                    match req.headers().get("Cookie")? {
+                    let session_id = match req.headers().get("Cookie")? {
                         None => {
                             return Ok(Response::empty().unwrap().with_status(400));
                         }
@@ -155,21 +155,33 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                                         .split("=")
                                         .take(2)
                                         .map(|text| text.trim())
-                                        .collect::<Vec<_>>();
-                                    (kvp[0], kvp[1])
+                                        .collect::<Vec<&str>>();
+                                    (kvp[0].to_owned(), kvp[1].to_owned())
                                 })
                                 .collect();
+                            match map.get("sessionId") {
+                                None => {
+                                    return Response::error("Not authorised", 401);
+                                }
+                                Some(session_id) => {session_id.to_owned()}
+                            }
                         }
-                    }
+                    };
 
-                    // actually save new post content
-                    db::post_content(&env, fulltitle.as_str(), content.as_str()).await?;
+                    let response = match db::get_session(&env, session_id).await? {
+                        None => Response::error("Not authorised", 401),
+                        Some(user) => {
+                            // actually save new post content
+                            db::post_content(&env, fulltitle.as_str(), content.as_str()).await?;
+                            let response = Response::empty();
+                            let mut headers = Headers::new();
+                            headers.set("Location", format!("/{}", fulltitle).as_str())?;
+                            Ok(response?.with_status(303).with_headers(headers))
+                        }
+                    };
+                    return response;
 
                     // create reponse to redirect user to new page
-                    let response = Response::empty();
-                    let mut headers = Headers::new();
-                    headers.set("Location", format!("/{}", fulltitle).as_str())?;
-                    return Ok(response?.with_status(303).with_headers(headers));
                 }
             }
             Response::error("Bad request, title and content must both be present.", 400)
