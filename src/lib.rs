@@ -1,18 +1,17 @@
 use std::collections::HashMap;
 
-use uuid::Uuid;
 use worker::*;
 mod crypto_helpers;
 mod db;
 mod user_obj;
 mod utils;
 
-async fn renderPage(path: &str, env: Env, isLoginError: bool) -> Result<Response> {
+async fn render_page(path: &str, env: Env, is_login_error: bool) -> Result<Response> {
     let style = include_str!("html/index.css");
 
     // Get post id from path
     let post_id = path
-        .strip_prefix("/")
+        .strip_prefix('/')
         .expect("Expected path to begin with /");
 
     // get content, return error if page doesn't exists
@@ -43,7 +42,7 @@ async fn renderPage(path: &str, env: Env, isLoginError: bool) -> Result<Response
         .replace("<!--content-->", content.as_str())
         .replace("<!--replies-->", replies_html.as_str());
 
-    let html = match isLoginError {
+    let html = match is_login_error {
         true => response.replace("<!--loginError-->", "Invalid Username or password"),
         false => response.replace("<!--loginError-->", ""),
     };
@@ -56,12 +55,12 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
     utils::set_panic_hook();
 
     match req.method() {
-        Method::Get => renderPage(&req.path(), env, false).await,
+        Method::Get => render_page(&req.path(), env, false).await,
         Method::Post => {
             // Get post_id from path
             let path = req.path();
             let post_id = path
-                .strip_prefix("/")
+                .strip_prefix('/')
                 .expect("Expected path to begin with /");
 
             // Check if login/register param is present; if so, process login/register input
@@ -90,7 +89,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                             headers.set("Location", req.path().as_str()).unwrap();
                             return Ok(response.unwrap().with_status(303).with_headers(headers));
                         } else {
-                            return Ok(renderPage(&path, env, true).await?.with_status(200));
+                            return Ok(render_page(&path, env, true).await?.with_status(200));
                         }
                     }
                 }
@@ -131,11 +130,11 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                     }
                     // Ensure Ensure title is a valid char
                     // Ensure path exists
-                    if let None = db::get_content(&env, post_id).await? {
+                    if db::get_content(&env, post_id).await?.is_none() {
                         return Response::error("Error: Can only reply to a post that exists", 400);
                     }
                     // Ensure fulltitle doesn't exist
-                    if let Some(_) = db::get_content(&env, fulltitle.as_str()).await? {
+                    if db::get_content(&env, fulltitle.as_str()).await?.is_some() {
                         return Response::error("Error: post already exists", 409);
                     }
                     // Ensure total length is <= 512
@@ -149,10 +148,10 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                         }
                         Some(cookies) => {
                             let map: HashMap<_, _> = cookies
-                                .split(";")
+                                .split(';')
                                 .map(|cookie| {
                                     let kvp = cookie
-                                        .split("=")
+                                        .split('=')
                                         .take(2)
                                         .map(|text| text.trim())
                                         .collect::<Vec<&str>>();
@@ -170,7 +169,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
 
                     let response = match db::get_session(&env, session_id).await? {
                         None => Response::error("Not authorised", 401),
-                        Some(user) => {
+                        Some(_) => {
                             // actually save new post content
                             db::post_content(&env, fulltitle.as_str(), content.as_str()).await?;
                             let response = Response::empty();

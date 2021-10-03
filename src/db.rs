@@ -1,7 +1,6 @@
 use super::crypto_helpers;
 use super::user_obj;
 use futures::future::join_all;
-use serde_json;
 use uuid::Uuid;
 use worker::*;
 
@@ -48,12 +47,7 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String
         // Ignore the case when the entire key is whitespace e.g. root post (root post is never a
         // child of another post)
         .filter(|key| {
-            if let Some(_) = key.name.rfind(|c: char| !c.is_whitespace()) {
-                true
-            } else {
-                false
-            }
-        })
+            key.name.rfind(|c: char| !c.is_whitespace()).is_some()})
         .map(|key| {
             let key_name = key.name.as_str();
             let body = kv.get(key_name);
@@ -91,16 +85,16 @@ pub async fn create_session<S: AsRef<str>>(
 
     match get_user(env, username).await? {
         None => {
-            return Ok(None);
-        }
+            Ok(None)
+        },
         Some(user) => {
             if crypto_helpers::verify_password(password, &user.hash) {
                 let session_id = Uuid::new_v4().to_simple().to_string();
                 update_session(env, username, &session_id).await?;
 
-                return Ok(Some(session_id));
+                Ok(Some(session_id))
             } else {
-                return Ok(None);
+                Ok(None)
             }
         }
     }
