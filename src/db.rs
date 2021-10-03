@@ -22,11 +22,7 @@ pub async fn get_content(env: &Env, post_id: &str) -> Result<Option<String>> {
     Ok(content)
 }
 
-pub async fn post_content(
-    env: &Env,
-    post_id: &str,
-    contents: &str,
-) -> Result<bool> {
+pub async fn post_content(env: &Env, post_id: &str, contents: &str) -> Result<bool> {
     let kv = env.kv("POSTS")?;
     let prefix = get_prefix(post_id, 0);
     kv.put(prefix.as_str(), contents)?.execute().await?;
