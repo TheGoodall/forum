@@ -116,6 +116,14 @@ async fn update_session<S: AsRef<str>, S2: AsRef<str>>(
     Ok(())
 }
 
+#[allow(dead_code)]
+pub async fn delete_session<S: AsRef<str>>(env: Env, session_id: S) -> Result<()> {
+    let session_id = session_id.as_ref();
+    let sessions_kv = env.kv("SESSIONS")?;
+    sessions_kv.delete(session_id).await?;
+    Ok(())
+}
+
 async fn get_user<S: AsRef<str>>(env: &Env, user_id: S) -> Result<Option<user_obj::UserAccount>> {
     let user_id = user_id.as_ref();
     let users_kv = env.kv("USERS")?;
