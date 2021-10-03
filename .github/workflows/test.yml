@@ -18,6 +18,7 @@ jobs:
         path: |
           ~/build
           ~/target
+          $CARGO_HOME
         key: ${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
     - name: Build
       run: cargo build --verbose
