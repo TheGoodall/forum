@@ -13,6 +13,31 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
     utils::log_request(&req);
     utils::set_panic_hook();
 
+    let session_id = match req.headers().get("Cookie")? {
+        None => {
+            return Ok(Response::empty().unwrap().with_status(400));
+        }
+        Some(cookies) => {
+            let map: HashMap<_, _> = cookies
+                .split(';')
+                .map(|cookie| {
+                    let kvp = cookie
+                        .split('=')
+                        .take(2)
+                        .map(|text| text.trim())
+                        .collect::<Vec<&str>>();
+                    (kvp[0].to_owned(), kvp[1].to_owned())
+                })
+                .collect();
+            match map.get("sessionId") {
+                None => {
+                    return Response::error("Not authorised", 401);
+                }
+                Some(session_id) => session_id.to_owned(),
+            }
+        }
+    };
+
     match req.method() {
         Method::Get => render_page(&req.path(), env, false).await,
         Method::Post => {
@@ -75,6 +100,16 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                     }
                 }
                 return Response::error("Bad request", 400);
+            } else if hashmap.contains_key("logout") {
+                let mut headers = Headers::new();
+                headers
+                    .set("Set-Cookie", "sessionId=deleted")
+                    .expect("failed to set response header");
+                headers
+                    .set("Location", req.path().as_str())
+                    .expect("Failed to set response header");
+
+                db::delete_session(&env, session_id.as_str()).await?;
             }
 
             // unpack form data and ensure that the correct attributes exist.
@@ -100,31 +135,6 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                     if fulltitle.len() >= 512 {
                         return Response::error("Error: max length has been reached", 400);
                     }
-
-                    let session_id = match req.headers().get("Cookie")? {
-                        None => {
-                            return Ok(Response::empty().unwrap().with_status(400));
-                        }
-                        Some(cookies) => {
-                            let map: HashMap<_, _> = cookies
-                                .split(';')
-                                .map(|cookie| {
-                                    let kvp = cookie
-                                        .split('=')
-                                        .take(2)
-                                        .map(|text| text.trim())
-                                        .collect::<Vec<&str>>();
-                                    (kvp[0].to_owned(), kvp[1].to_owned())
-                                })
-                                .collect();
-                            match map.get("sessionId") {
-                                None => {
-                                    return Response::error("Not authorised", 401);
-                                }
-                                Some(session_id) => session_id.to_owned(),
-                            }
-                        }
-                    };
 
                     let response = match db::get_session(&env, session_id).await? {
                         None => Response::error("Not authorised", 401),
