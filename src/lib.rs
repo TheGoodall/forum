@@ -148,7 +148,17 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                             return Ok(Response::empty().unwrap().with_status(400));
                         }
                         Some(cookies) => {
-                            let map: HashMap<_, _> = cookies.split(";").collect();
+                            let map: HashMap<_, _> = cookies
+                                .split(";")
+                                .map(|cookie| {
+                                    let kvp = cookie
+                                        .split("=")
+                                        .take(2)
+                                        .map(|text| text.trim())
+                                        .collect::<Vec<_>>();
+                                    (kvp[0], kvp[1])
+                                })
+                                .collect();
                         }
                     }
 
