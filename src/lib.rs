@@ -163,7 +163,7 @@ pub async fn main(mut req: Request, env: Env) -> Result<Response> {
                                 None => {
                                     return Response::error("Not authorised", 401);
                                 }
-                                Some(session_id) => {session_id.to_owned()}
+                                Some(session_id) => session_id.to_owned(),
                             }
                         }
                     };
