@@ -3,3 +3,4 @@
 wasm-pack.log
 build/
 *.swp
+test.sh
