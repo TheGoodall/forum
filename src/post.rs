@@ -24,7 +24,7 @@ pub async fn handle_post_request<S: AsRef<str>>(
     // get form data
     let form_data = req.form_data().await?;
 
-    // The second parameter in the url will always take precedent, so ?login&register will result in a register request
+    // Priority is login -> register -> logout
     if hashmap.contains_key("login") {
         if let Some(FormEntry::Field(email)) = form_data.get("email") {
             if let Some(FormEntry::Field(password)) = form_data.get("password") {
