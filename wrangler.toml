@@ -29,5 +29,8 @@ globs = ["**/*.wasm"]
 type  = "CompiledWasm"
 
 
+[env.dev]
+name = "forum_dev"
+
 # read more about configuring your Worker via wrangler.toml at:
 # https://developers.cloudflare.com/workers/cli-wrangler/configuration
