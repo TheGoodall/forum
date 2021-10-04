@@ -6,6 +6,7 @@ use super::*;
 pub async fn handle_post_request<S: AsRef<str>>(
     mut req: Request,
     env: Env,
+    user: Option<user_obj::UserAccount>,
     session_id: Option<S>,
 ) -> Result<Response> {
     let session_id = session_id.as_ref();
@@ -70,11 +71,9 @@ pub async fn handle_post_request<S: AsRef<str>>(
         return Response::error("Bad request", 400);
     }
 
-    let session_id = if let Some(session_id) = session_id {
-        session_id
-    } else {
+    if user.is_none() {
         return Response::error("Error, User is not logged in!", 401);
-    };
+    }
 
     if hashmap.contains_key("logout") {
         let mut headers = Headers::new();
@@ -85,7 +84,11 @@ pub async fn handle_post_request<S: AsRef<str>>(
             .set("Location", req.path().as_str())
             .expect("Failed to set response header");
 
-        db::delete_session(&env, session_id).await?;
+        db::delete_session(
+            &env,
+            session_id.expect("Error: User was Some but session_id was None!"),
+        )
+        .await?;
     }
 
     // unpack form data and ensure that the correct attributes exist.
@@ -120,20 +123,15 @@ pub async fn handle_post_request<S: AsRef<str>>(
                 return Response::error("Error: max length has been reached", 400);
             }
 
-            let response = match db::get_session(&env, session_id).await? {
-                None => Response::error("Not authorised", 401),
-                Some(_) => {
-                    // actually save new post content
-                    db::post_content(&env, fulltitle.as_str(), content.as_str()).await?;
-                    let response = Response::empty();
-                    let mut headers = Headers::new();
-                    headers.set("Location", format!("/{}", fulltitle).as_str())?;
-                    Ok(response?.with_status(303).with_headers(headers))
-                }
-            };
-            return response;
+            // actually save new post content
+            db::post_content(&env, fulltitle.as_str(), content.as_str()).await?;
 
             // create reponse to redirect user to new page
+            let response = Response::empty()?;
+            let mut headers = Headers::new();
+            headers.set("Location", format!("/{}", fulltitle).as_str())?;
+
+            return Ok(response.with_status(303).with_headers(headers));
         }
     }
     Response::error("Bad request, title and content must both be present.", 400)

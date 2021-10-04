@@ -15,9 +15,11 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
     utils::log_request(&req);
     utils::set_panic_hook();
 
-    let session_id = match req.headers().get("Cookie")? {
-        None => None,
-        Some(cookies) => {
+    // Get session_id
+    let mut session_id = req
+        .headers()
+        .get("Cookie")?
+        .map(|cookies| {
             let map: HashMap<_, _> = cookies
                 .split(';')
                 .map(|cookie| {
@@ -30,12 +32,22 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
                 })
                 .collect();
             map.get("sessionId").map(|session_id| session_id.to_owned())
-        }
+        })
+        .flatten();
+
+    // Get user for session if valid session else None
+    let user = if let Some(ref session_id) = session_id {
+        db::get_session(&env, &session_id).await?
+    } else {
+        None
     };
+
+    // remove session_ids that do not correspond to a valid session
+    session_id = session_id.filter(|_| user.is_some());
 
     match req.method() {
         Method::Get => render_page(&req.path(), env, false).await,
-        Method::Post => handle_post_request(req, env, session_id).await,
+        Method::Post => handle_post_request(req, env, user, session_id).await,
         Method::Put => {
             todo!()
         }
