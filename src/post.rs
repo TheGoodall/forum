@@ -103,10 +103,7 @@ pub async fn handle_post_request<S: AsRef<str>>(
             }
 
             // Ensure Ensure title is a valid char
-            let validchar = |c: char| {
-                ('0'..='9').contains(&c) || ('a'..='z').contains(&c) || ('A'..='Z').contains(&c)
-            };
-            if title.contains(validchar) {
+            if !title.contains(validchar) {
                 return Response::error("Char must be alphanumeric", 400);
             }
 
@@ -135,4 +132,24 @@ pub async fn handle_post_request<S: AsRef<str>>(
         }
     }
     Response::error("Bad request, title and content must both be present.", 400)
+}
+
+fn validchar(c: char) -> bool {
+    ('0'..='9').contains(&c) || ('a'..='z').contains(&c) || ('A'..='Z').contains(&c)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn valid_char() {
+        assert!(validchar('z'), "z is valid char");
+        assert!(validchar('0'), "4 is valid char");
+        assert!(validchar('A'), "A is valid char");
+        assert!(!validchar('$'), "$ is not valid char");
+        assert!(!validchar('!'), "! is not valid char");
+        assert!(!validchar('#'), "# is not valid char");
+        assert!(!validchar('~'), "~ is not valid char");
+    }
 }
