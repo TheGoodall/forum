@@ -45,9 +45,18 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
     // remove session_ids that do not correspond to a valid session
     session_id = session_id.filter(|_| user.is_some());
 
-    match req.method() {
+    let result = match req.method() {
         Method::Get => render_page(&req.path(), env, false).await,
         Method::Post => handle_post_request(req, env, user, session_id).await,
         _ => Response::error("Only GET and POST methods are allowed", 405),
+    };
+
+    // If the route returns an error, replace it with an error response and return it to the user.
+    match result {
+        Ok(response) => Ok(response),
+        Err(error) => {
+            console_log!("An error occured: {}", error);
+            Response::error("An error has occured", 500)
+        }
     }
 }
