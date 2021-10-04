@@ -5,7 +5,7 @@ use worker::*;
 
 pub async fn render_page(
     path: &str,
-    env: Env,
+    env: &Env,
     is_login_error: bool,
     user: Option<User>,
 ) -> Result<Response> {
@@ -17,7 +17,7 @@ pub async fn render_page(
         .expect("Expected path to begin with /");
 
     // get content, return error if page doesn't exists
-    let content = match db::get_content(&env, post_id).await? {
+    let content = match db::get_content(env, post_id).await? {
         None => {
             return Response::error("Page Not Found", 404);
         }
@@ -25,7 +25,7 @@ pub async fn render_page(
     };
 
     // get all replies to post
-    let replies = db::get_replies(&env, post_id).await?;
+    let replies = db::get_replies(env, post_id).await?;
 
     // Render replies
     let replies_html = replies
