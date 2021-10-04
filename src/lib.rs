@@ -48,10 +48,6 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
     match req.method() {
         Method::Get => render_page(&req.path(), env, false).await,
         Method::Post => handle_post_request(req, env, user, session_id).await,
-        Method::Put => {
-            todo!()
-        }
-
-        _ => Response::error("Only GET, PUT and POST methods are allowed", 405),
+        _ => Response::error("Only GET and POST methods are allowed", 405),
     }
 }
