@@ -44,8 +44,11 @@ pub async fn render_page(
         .replace("<!--replies-->", replies_html.as_str());
 
     response = match user {
-        Some(user) => response.replace("<!--username-->", format!("Hi {}!", user.user_id.as_str()).as_str()),
-        None => response.replace("<!--username-->", format!("You are not logged in!").as_str()),
+        Some(user) => response.replace(
+            "<!--username-->",
+            format!("Hi {}!", user.user_id.as_str()).as_str(),
+        ),
+        None => response.replace("<!--username-->", "You are not logged in!"),
     };
 
     let html = match is_login_error {
