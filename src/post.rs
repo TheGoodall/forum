@@ -69,9 +69,10 @@ pub async fn handle_post_request<S: AsRef<str>>(
         return Response::error("Bad request", 400);
     }
 
-    if user.is_none() {
-        return Response::error("Error, User is not logged in!", 401);
-    }
+    let user = match user {
+        None => return Response::error("Error, User is not logged in!", 401),
+        Some(user) => user,
+    };
 
     if hashmap.contains_key("logout") {
         let mut headers = Headers::new();
@@ -122,7 +123,7 @@ pub async fn handle_post_request<S: AsRef<str>>(
             }
 
             // actually save new post content
-            db::post_content(env, fulltitle.as_str(), content.as_str()).await?;
+            db::post_content(env, fulltitle.as_str(), content.as_str(), user).await?;
 
             // create reponse to redirect user to new page
             let response = Response::empty()?;

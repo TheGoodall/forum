@@ -30,10 +30,10 @@ pub async fn render_page(
     // Render replies
     let replies_html = replies
         .iter()
-        .map(|(id, content)| {
+        .map(|post| {
             include_str!("html/templates/post.html")
-                .replace("<!--title-->", id)
-                .replace("<!--content-->", content)
+                .replace("<!--title-->", post.title.as_str())
+                .replace("<!--content-->", post.post.content.as_str())
         })
         .collect::<String>();
     // render page

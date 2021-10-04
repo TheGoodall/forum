@@ -1,3 +1,5 @@
+use crate::post_obj;
+
 use super::crypto_helpers;
 use super::user_obj;
 use futures::future::join_all;
@@ -21,14 +23,25 @@ pub async fn get_content(env: &Env, post_id: &str) -> Result<Option<String>> {
     Ok(content)
 }
 
-pub async fn post_content(env: &Env, post_id: &str, contents: &str) -> Result<()> {
+pub async fn post_content(
+    env: &Env,
+    post_id: &str,
+    contents: &str,
+    user: user_obj::User,
+) -> Result<()> {
     let kv = env.kv("POSTS")?;
     let prefix = get_prefix(post_id, 0);
-    kv.put(prefix.as_str(), contents)?.execute().await?;
+
+    let post = post_obj::Post {
+        user: user.user_id,
+        content: contents.to_string(),
+    };
+    let post_string = serde_json::to_string(&post)?;
+    kv.put(prefix.as_str(), post_string)?.execute().await?;
     Ok(())
 }
 
-pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String)>> {
+pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<post_obj::PostTitle>> {
     let prefix = get_prefix(post_id, 1);
 
     // get list of keys with correct prefix
@@ -53,7 +66,17 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<(String, String
             }
         });
     // Perform all IO async
-    Ok(join_all(replies).await)
+    let reply_pairs = join_all(replies).await;
+    Ok(reply_pairs
+        .iter()
+        .map(|(title, body)| -> Result<post_obj::PostTitle> {
+            Ok(post_obj::PostTitle {
+                title: title.to_string(),
+                post: serde_json::from_str(body)?,
+            })
+        })
+        .filter_map(|value| value.ok())
+        .collect())
 }
 
 /*

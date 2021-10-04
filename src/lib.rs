@@ -4,6 +4,7 @@ use worker::*;
 mod crypto_helpers;
 mod db;
 mod post;
+mod post_obj;
 mod render;
 mod user_obj;
 mod utils;
