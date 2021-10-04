@@ -16,9 +16,7 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
     utils::set_panic_hook();
 
     let session_id = match req.headers().get("Cookie")? {
-        None => {
-            return Ok(Response::empty().unwrap().with_status(400));
-        }
+        None => None,
         Some(cookies) => {
             let map: HashMap<_, _> = cookies
                 .split(';')
@@ -31,18 +29,13 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
                     (kvp[0].to_owned(), kvp[1].to_owned())
                 })
                 .collect();
-            match map.get("sessionId") {
-                None => {
-                    return Response::error("Not authorised", 401);
-                }
-                Some(session_id) => session_id.to_owned(),
-            }
+            map.get("sessionId").map(|session_id| session_id.to_owned())
         }
     };
 
     match req.method() {
         Method::Get => render_page(&req.path(), env, false).await,
-        Method::Post => handle_post_request(req, env, &session_id).await,
+        Method::Post => handle_post_request(req, env, session_id).await,
         Method::Put => {
             todo!()
         }
