@@ -46,7 +46,7 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
     session_id = session_id.filter(|_| user.is_some());
 
     let result = match req.method() {
-        Method::Get => render_page(&req.path(), env, false).await,
+        Method::Get => render_page(&req.path(), env, false, user).await,
         Method::Post => handle_post_request(req, env, user, session_id).await,
         _ => Response::error("Only GET and POST methods are allowed", 405),
     };

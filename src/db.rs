@@ -80,7 +80,7 @@ pub async fn create_session<S: AsRef<str>>(
     match get_user(env, username).await? {
         None => Ok(None),
         Some(user) => {
-            if crypto_helpers::verify_password(password, &user.hash) {
+            if crypto_helpers::verify_password(password, &user.account.hash) {
                 let session_id = Uuid::new_v4().to_simple().to_string();
                 update_session(env, username, &session_id).await?;
 
@@ -123,7 +123,7 @@ pub async fn delete_session<S: AsRef<str>>(env: &Env, session_id: S) -> Result<(
     Ok(())
 }
 
-async fn get_user<S: AsRef<str>>(env: &Env, user_id: S) -> Result<Option<user_obj::UserAccount>> {
+async fn get_user<S: AsRef<str>>(env: &Env, user_id: S) -> Result<Option<user_obj::User>> {
     let user_id = user_id.as_ref();
     let users_kv = env.kv("USERS")?;
     let user_data = users_kv.get(user_id).await?;
@@ -131,7 +131,10 @@ async fn get_user<S: AsRef<str>>(env: &Env, user_id: S) -> Result<Option<user_ob
         Some(data) => {
             let deserialised: user_obj::UserAccount =
                 serde_json::from_str(data.as_string().as_str())?;
-            Ok(Some(deserialised))
+            Ok(Some(user_obj::User {
+                account: deserialised,
+                user_id: user_id.to_string(),
+            }))
         }
         None => Ok(None),
     }
@@ -140,7 +143,7 @@ async fn get_user<S: AsRef<str>>(env: &Env, user_id: S) -> Result<Option<user_ob
 pub async fn get_session<S: AsRef<str>>(
     env: &Env,
     session_id: S,
-) -> Result<Option<user_obj::UserAccount>> {
+) -> Result<Option<user_obj::User>> {
     let session_id = session_id.as_ref();
 
     let sessions_kv = env.kv("SESSIONS")?;

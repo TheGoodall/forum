@@ -1,7 +1,13 @@
 use super::db;
+use super::user_obj::*;
 use worker::*;
 
-pub async fn render_page(path: &str, env: Env, is_login_error: bool) -> Result<Response> {
+pub async fn render_page(
+    path: &str,
+    env: Env,
+    is_login_error: bool,
+    user: Option<User>,
+) -> Result<Response> {
     let style = include_str!("html/index.css");
 
     // Get post id from path
@@ -31,11 +37,16 @@ pub async fn render_page(path: &str, env: Env, is_login_error: bool) -> Result<R
         .collect::<String>();
     // render page
 
-    let response = include_str!("html/index.html")
+    let mut response = include_str!("html/index.html")
         .replace("/*style*/", style)
         .replace("<!--title-->", post_id)
         .replace("<!--content-->", content.as_str())
         .replace("<!--replies-->", replies_html.as_str());
+
+    response = match user {
+        Some(user) => response.replace("<!--username-->", user.user_id.as_str()),
+        None => response.replace("<!--username-->", ""),
+    };
 
     let html = match is_login_error {
         true => response.replace("<!--loginError-->", "Invalid Username or password"),

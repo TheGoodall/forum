@@ -5,6 +5,11 @@ pub struct UserAccount {
     pub hash: String,
 }
 
+pub struct User {
+    pub account: UserAccount,
+    pub user_id: String,
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

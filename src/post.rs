@@ -6,7 +6,7 @@ use super::*;
 pub async fn handle_post_request<S: AsRef<str>>(
     mut req: Request,
     env: Env,
-    user: Option<user_obj::UserAccount>,
+    user: Option<user_obj::User>,
     session_id: Option<S>,
 ) -> Result<Response> {
     let session_id = session_id.as_ref();
@@ -42,7 +42,7 @@ pub async fn handle_post_request<S: AsRef<str>>(
                     headers.set("Location", req.path().as_str()).unwrap();
                     return Ok(response.unwrap().with_status(303).with_headers(headers));
                 } else {
-                    return Ok(render_page(&path, env, true).await?.with_status(200));
+                    return Ok(render_page(&path, env, true, user).await?.with_status(200));
                 }
             }
         }
