@@ -159,7 +159,7 @@ pub async fn get_session<S: AsRef<str>>(
 }
 
 pub async fn create_user<S: AsRef<str>>(
-    env: Env,
+    env: &Env,
     username: S,
     password: S,
 ) -> Result<Option<String>> {
@@ -172,7 +172,15 @@ pub async fn create_user<S: AsRef<str>>(
     };
     let serialized = serde_json::to_string(&acc).unwrap();
 
+    if get_user(env, username).await?.is_some() {
+        return Ok(None);
+    }
+
     let users_kv = env.kv("USERS")?;
     users_kv.put(username, serialized)?.execute().await?;
-    Ok(Some(username.to_string()))
+
+    let session_id = create_session(env, username, password)
+        .await?
+        .expect("Create session failed when it shouldn't have");
+    Ok(Some(session_id))
 }
