@@ -38,6 +38,7 @@
 			<p>This is treply. It's a mega-forum where every post title contains the title of the post it's replying to.
 				That might seem like a wierd gimmick, and it really is.</p>
 			<section class="login-container">
+				<!--startLogin-->
 				<input id="login-toggle" type="checkbox">
 				<label for="login-toggle">
 					<div class="login-toggle-login">Login</div>
@@ -58,6 +59,17 @@
 						<button type="submit">Register</button>
 					</label>
 				</form>
+				<!--endLogin-->
+				<!--startLogout-->
+				<form class="logout" method="POST" action="<!--title-->?logout">
+					Welcome
+					<!--username-->
+					<label>
+						<button type="submit">Logout</button>
+						<!--loginError-->
+					</label>
+				</form>
+				<!--endLogout-->
 			</section>
 		</aside>
 

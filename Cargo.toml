@@ -20,6 +20,7 @@ argon2 = "0.2"
 rand_core = { version = "0.6", features = ["std"] }
 serde = "1.0.130"
 serde_json = "1.0.68"
+regex = "1.5.4"
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.

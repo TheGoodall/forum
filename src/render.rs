@@ -1,5 +1,6 @@
 use super::db;
 use super::user_obj::*;
+use regex::Regex;
 use worker::*;
 
 pub async fn render_page(
@@ -43,9 +44,17 @@ pub async fn render_page(
         .replace("<!--content-->", content.as_str())
         .replace("<!--replies-->", replies_html.as_str());
 
+    let login_regex = Regex::new(r"<!--startLogin-->(.|\n)*<!--endLogin-->").unwrap();
+    let logout_regex = Regex::new(r"<!--startLogout-->(.|\n)*<!--endLogout-->").unwrap();
     response = match user {
-        Some(user) => response.replace("<!--username-->", user.user_id.as_str()),
-        None => response.replace("<!--username-->", ""),
+        Some(user) => {
+            response = response.replace("<!--username-->", user.user_id.as_str());
+            login_regex.replace_all(&response, "").into_owned()
+        }
+        None => {
+            response = response.replace("<!--username-->", "");
+            logout_regex.replace_all(&response, "").into_owned()
+        }
     };
 
     let html = match is_login_error {
