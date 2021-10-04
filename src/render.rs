@@ -41,7 +41,7 @@ pub async fn render_page(
     let mut response = include_str!("html/index.html")
         .replace("/*style*/", style)
         .replace("<!--title-->", post_id)
-        .replace("<!--content-->", content.as_str())
+        .replace("<!--content-->", content.post.content.as_str())
         .replace("<!--replies-->", replies_html.as_str());
 
     let login_regex = Regex::new(r"<!--startLogin-->(.|\n)*<!--endLogin-->").unwrap();

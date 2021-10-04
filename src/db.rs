@@ -6,21 +6,23 @@ use futures::future::join_all;
 use uuid::Uuid;
 use worker::*;
 
-pub async fn get_content(env: &Env, post_id: &str) -> Result<Option<String>> {
+pub async fn get_content(env: &Env, post_id: &str) -> Result<Option<post_obj::PostTitle>> {
     let prefix = get_prefix(post_id, 0);
 
     // get data
     let data = env.kv("POSTS")?.get(prefix.as_str()).await?;
-
-    // convert to string and return
-    let content: Option<String>;
-    if let Some(contents) = data {
-        content = Some(contents.as_string());
-    } else {
-        content = None;
+    match data {
+        None => Ok(None),
+        Some(content) => {
+            let post = serde_json::from_str(content.as_string().as_str())?;
+            Ok(Some(post_obj::PostTitle {
+                title: post_id.to_string(),
+                post,
+            }))
+        }
     }
 
-    Ok(content)
+    // convert to string and return
 }
 
 pub async fn post_content(
