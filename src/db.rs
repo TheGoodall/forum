@@ -34,6 +34,8 @@ pub async fn post_content(
     let kv = env.kv("POSTS")?;
     let prefix = get_prefix(post_id, 0);
 
+    let contents = html_escape::encode_text(contents);
+
     let post = post_obj::Post {
         user: user.user_id,
         content: contents.to_string(),
