@@ -60,7 +60,7 @@ pub async fn render_page(
     };
 
     let html = match is_login_error {
-        true => response.replace("<!--loginError-->", "Invalid Username or password"),
+        true => response.replace("<!--loginError-->", include_str!("html/templates/login-error.html")),
         false => response.replace("<!--loginError-->", ""),
     };
     Response::from_html(html)

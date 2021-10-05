@@ -46,6 +46,7 @@ h1 {
     display: block;
     margin: 4px 0 0 0;
     padding: 4px;
+    width:100%;
 }
 
 .login-container button {
@@ -156,6 +157,16 @@ label[for="login-toggle"] {
 
 .post .user {
     font-style: italic;
+}
+
+.login-error {
+    display: inline-block;
+    padding: 2px 6px;
+    margin-top:4px;
+    background-color: #C33;
+    color:white;
+    border-radius: 2px;
+    font-size: 0.9rem;
 }
 
 @media (min-width:768px) {
