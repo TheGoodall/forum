@@ -34,6 +34,7 @@ pub async fn render_page(
             include_str!("html/templates/post.html")
                 .replace("<!--title-->", post.title.as_str())
                 .replace("<!--content-->", post.post.content.as_str())
+                .replace("<!--user-->", post.post.user.as_str())
         })
         .collect::<String>();
     // render page
@@ -42,6 +43,7 @@ pub async fn render_page(
         .replace("/*style*/", style)
         .replace("<!--title-->", post_id)
         .replace("<!--content-->", content.post.content.as_str())
+        .replace("<!--author-->", content.post.user.as_str())
         .replace("<!--replies-->", replies_html.as_str());
 
     let login_regex = Regex::new(r"<!--startLogin-->(.|\n)*<!--endLogin-->").unwrap();

@@ -151,6 +151,11 @@ label[for="login-toggle"] {
 
 .subpost .user {
     font-size: 1rem;
+    font-style: italic;
+}
+
+.post .user {
+    font-style: italic;
 }
 
 @media (min-width:768px) {
