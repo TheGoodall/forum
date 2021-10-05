@@ -46,7 +46,6 @@ h1 {
     display: block;
     margin: 4px 0 0 0;
     padding: 4px;
-    width:100%;
 }
 
 .login-container button {
@@ -160,7 +159,6 @@ label[for="login-toggle"] {
 }
 
 .login-error {
-    display: inline-block;
     padding: 2px 6px;
     margin-top:4px;
     background-color: #C33;
