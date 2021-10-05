@@ -14,10 +14,12 @@ pub async fn get_content(env: &Env, post_id: &str) -> Result<Option<post_obj::Po
     match data {
         None => Ok(None),
         Some(content) => {
-            let post = serde_json::from_str(content.as_string().as_str())?;
+            let post: post_obj::Post = serde_json::from_str(content.as_string().as_str())?;
+            let user = get_user(env, &post.user).await?;
             Ok(Some(post_obj::PostTitle {
                 title: post_id.to_string(),
                 post,
+                user,
             }))
         }
     }
@@ -53,34 +55,25 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<post_obj::PostT
     let kv = env.kv("POSTS")?;
 
     // get content for each key
-    let replies = keys
+    let values = keys
         .keys
         .iter()
         // Ignore the case when the entire key is whitespace e.g. root post (root post is never a
         // child of another post)
-        .filter(|key| key.name.rfind(|c: char| !c.is_whitespace()).is_some())
-        .map(|key| {
-            let key_name = key.name.as_str();
-            let body = kv.get(key_name);
-            async move {
-                (
-                    key_name.trim_start().to_string(),
-                    body.await.unwrap().unwrap().as_string(),
-                )
-            }
-        });
-    // Perform all IO async
-    let reply_pairs = join_all(replies).await;
-    Ok(reply_pairs
-        .iter()
-        .map(|(title, body)| -> Result<post_obj::PostTitle> {
-            Ok(post_obj::PostTitle {
-                title: title.to_string(),
-                post: serde_json::from_str(body)?,
-            })
+        //.filter(|key| key.name.rfind(|c: char| !c.is_whitespace()).is_some())
+        .map(|key| async {
+            let key_name = key.name.as_str().trim_start();
+            let body = kv.get(key_name).await.unwrap().unwrap().as_string();
+            let post: post_obj::Post = serde_json::from_str(body.as_str())?;
+            let post_title = post_obj::PostTitle {
+                title: key_name.to_string(),
+                post,
+                user: get_user(env, post.user).await?,
+            };
+            Ok(post_title)
         })
-        .filter_map(|value| value.ok())
-        .collect())
+        .collect();
+    Ok(join_all(values).await)
 }
 
 /*
@@ -187,6 +180,7 @@ pub async fn get_session<S: AsRef<str>>(
 
 pub async fn create_user<S: AsRef<str>>(
     env: &Env,
+    email: S,
     username: S,
     password: S,
 ) -> Result<Option<String>> {
@@ -196,6 +190,7 @@ pub async fn create_user<S: AsRef<str>>(
     let hash = crypto_helpers::hash_password(password);
     let acc = user_obj::UserAccount {
         hash: hash.to_string(),
+        username: username.to_string(),
     };
     let serialized = serde_json::to_string(&acc).unwrap();
 

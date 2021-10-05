@@ -31,10 +31,14 @@ pub async fn render_page(
     let replies_html = replies
         .iter()
         .map(|post| {
-            include_str!("html/templates/post.html")
+            let reply = include_str!("html/templates/post.html")
                 .replace("<!--title-->", post.title.as_str())
-                .replace("<!--content-->", post.post.content.as_str())
-                .replace("<!--user-->", post.post.user.as_str())
+                .replace("<!--content-->", post.post.content.as_str());
+            let user_text = match &post.user {
+                None => "[DELETED]",
+                Some(user) => user.account.username.as_str(),
+            };
+            reply.replace("<!--user-->", user_text)
         })
         .collect::<String>();
     // render page

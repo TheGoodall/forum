@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserAccount {
     pub hash: String,
+    pub username: String,
 }
 
 pub struct User {

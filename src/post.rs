@@ -50,19 +50,21 @@ pub async fn handle_post_request<S: AsRef<str>>(
     } else if hashmap.contains_key("register") {
         if let Some(FormEntry::Field(email)) = form_data.get("email") {
             if let Some(FormEntry::Field(password)) = form_data.get("password") {
-                let response = Response::empty();
-                let mut headers = Headers::new();
+                if let Some(FormEntry::Field(username)) = form_data.get("username") {
+                    let response = Response::empty();
+                    let mut headers = Headers::new();
 
-                let session_id = db::create_user(env, email, password).await?;
+                    let session_id = db::create_user(env, email, username, password).await?;
 
-                if let Some(session_id) = session_id {
-                    headers
-                        .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
-                        .unwrap();
-                    headers.set("Location", req.path().as_str()).unwrap();
-                    return Ok(response.unwrap().with_status(303).with_headers(headers));
-                } else {
-                    return Ok(render_page(&path, env, true, user).await?.with_status(200));
+                    if let Some(session_id) = session_id {
+                        headers
+                            .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
+                            .unwrap();
+                        headers.set("Location", req.path().as_str()).unwrap();
+                        return Ok(response.unwrap().with_status(303).with_headers(headers));
+                    } else {
+                        return Ok(render_page(&path, env, true, user).await?.with_status(200));
+                    }
                 }
             }
         }
