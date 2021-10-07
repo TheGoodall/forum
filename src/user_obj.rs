@@ -21,6 +21,7 @@ mod test {
         let hash = "1";
         let acc = UserAccount {
             hash: hash.to_string(),
+            username: "test".to_string(),
         };
         let serialized = serde_json::to_string(&acc).unwrap();
         println!("{}", serialized);

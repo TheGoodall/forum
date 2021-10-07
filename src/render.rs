@@ -43,11 +43,16 @@ pub async fn render_page(
         .collect::<String>();
     // render page
 
+    let username = match content.user {
+        Some(user) => user.account.username,
+        None => "[Deleted]".to_owned(),
+    };
+
     let mut response = include_str!("html/index.html")
         .replace("/*style*/", style)
         .replace("<!--title-->", post_id)
         .replace("<!--content-->", content.post.content.as_str())
-        .replace("<!--author-->", content.post.user.as_str())
+        .replace("<!--author-->", username.as_ref())
         .replace("<!--replies-->", replies_html.as_str());
 
     let login_regex = Regex::new(r"<!--startLogin-->(.|\n)*<!--endLogin-->").unwrap();

@@ -2,7 +2,8 @@ use crate::post_obj;
 
 use super::crypto_helpers;
 use super::user_obj;
-use futures::future::join_all;
+use futures::stream::FuturesOrdered;
+use futures::StreamExt;
 use uuid::Uuid;
 use worker::*;
 
@@ -52,7 +53,6 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<post_obj::PostT
 
     // get list of keys with correct prefix
     let keys = env.kv("POSTS")?.list().prefix(prefix).execute().await?;
-    let kv = env.kv("POSTS")?;
 
     // get content for each key
     let values = keys
@@ -60,20 +60,30 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<post_obj::PostT
         .iter()
         // Ignore the case when the entire key is whitespace e.g. root post (root post is never a
         // child of another post)
-        //.filter(|key| key.name.rfind(|c: char| !c.is_whitespace()).is_some())
-        .map(|key| async {
+        .filter(|key| key.name.rfind(|c: char| !c.is_whitespace()).is_some())
+        .map(|key| async move {
             let key_name = key.name.as_str().trim_start();
-            let body = kv.get(key_name).await.unwrap().unwrap().as_string();
+            let kv = env.kv("POSTS")?;
+            let body = kv
+                .get(key.name.as_str())
+                .await?
+                .expect("Key is apparenly None")
+                .as_string();
             let post: post_obj::Post = serde_json::from_str(body.as_str())?;
+            let user = post.user.to_string();
             let post_title = post_obj::PostTitle {
                 title: key_name.to_string(),
                 post,
-                user: get_user(env, post.user).await?,
+                user: get_user(env, user).await?,
             };
-            Ok(post_title)
+            worker::Result::Ok(post_title)
         })
-        .collect();
-    Ok(join_all(values).await)
+        // Actually run the created futures and convert back to iterator
+        .collect::<FuturesOrdered<_>>()
+        .filter_map(|v| async { v.ok() })
+        .collect::<Vec<_>>()
+        .await;
+    Ok(values)
 }
 
 /*
@@ -186,6 +196,7 @@ pub async fn create_user<S: AsRef<str>>(
 ) -> Result<Option<String>> {
     let username = username.as_ref();
     let password = password.as_ref();
+    let email = email.as_ref();
 
     let hash = crypto_helpers::hash_password(password);
     let acc = user_obj::UserAccount {
@@ -194,14 +205,14 @@ pub async fn create_user<S: AsRef<str>>(
     };
     let serialized = serde_json::to_string(&acc).unwrap();
 
-    if get_user(env, username).await?.is_some() {
+    if get_user(env, email).await?.is_some() {
         return Ok(None);
     }
 
     let users_kv = env.kv("USERS")?;
-    users_kv.put(username, serialized)?.execute().await?;
+    users_kv.put(email, serialized)?.execute().await?;
 
-    let session_id = create_session(env, username, password)
+    let session_id = create_session(env, email, password)
         .await?
         .expect("Create session failed when it shouldn't have");
     Ok(Some(session_id))
