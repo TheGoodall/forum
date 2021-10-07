@@ -154,17 +154,17 @@ async fn get_user<S: AsRef<str>>(env: &Env, user_id: S) -> Result<Option<user_ob
     let user_id = user_id.as_ref();
     let users_kv = env.kv("USERS")?;
     let user_data = users_kv.get(user_id).await?;
-    match user_data {
+    Ok(match user_data {
         Some(data) => {
             let deserialised: user_obj::UserAccount =
                 serde_json::from_str(data.as_string().as_str())?;
-            Ok(Some(user_obj::User {
+            Some(user_obj::User {
                 account: deserialised,
                 user_id: user_id.to_string(),
-            }))
+            })
         }
-        None => Ok(None),
-    }
+        None => None,
+    })
 }
 
 pub async fn get_session<S: AsRef<str>>(
