@@ -26,12 +26,12 @@ pub async fn handle_post_request<S: AsRef<str>>(
 
     // Priority is login -> register -> logout
     if hashmap.contains_key("login") {
-        if let Some(FormEntry::Field(email)) = form_data.get("email") {
+        if let Some(FormEntry::Field(user_id)) = form_data.get("email") {
             if let Some(FormEntry::Field(password)) = form_data.get("password") {
                 let response = Response::empty();
                 let mut headers = Headers::new();
 
-                let session_id = db::create_session(env, email, password)
+                let session_id = db::create_session(env, user_id, password)
                     .await
                     .expect("Server failed to create session.");
 
@@ -48,13 +48,13 @@ pub async fn handle_post_request<S: AsRef<str>>(
         }
         return Response::error("Bad request", 400);
     } else if hashmap.contains_key("register") {
-        if let Some(FormEntry::Field(email)) = form_data.get("email") {
+        if let Some(FormEntry::Field(user_id)) = form_data.get("email") {
             if let Some(FormEntry::Field(password)) = form_data.get("password") {
                 if let Some(FormEntry::Field(username)) = form_data.get("username") {
                     let response = Response::empty();
                     let mut headers = Headers::new();
 
-                    let session_id = db::create_user(env, email, username, password).await?;
+                    let session_id = db::create_user(env, user_id, username, password).await?;
 
                     if let Some(session_id) = session_id {
                         headers

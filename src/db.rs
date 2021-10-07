@@ -101,18 +101,18 @@ fn get_prefix(post_id: &str, offset: usize) -> String {
 
 pub async fn create_session<S: AsRef<str>>(
     env: &Env,
-    username: S,
+    user_id: S,
     password: S,
 ) -> Result<Option<String>> {
-    let username = username.as_ref();
+    let user_id = user_id.as_ref();
     let password = password.as_ref();
 
-    match get_user(env, username).await? {
+    match get_user(env, user_id).await? {
         None => Ok(None),
         Some(user) => {
             if crypto_helpers::verify_password(password, &user.account.hash) {
                 let session_id = Uuid::new_v4().to_simple().to_string();
-                update_session(env, username, &session_id).await?;
+                update_session(env, user_id, &session_id).await?;
 
                 Ok(Some(session_id))
             } else {
@@ -126,7 +126,7 @@ pub async fn create_session<S: AsRef<str>>(
  * */
 async fn update_session<S: AsRef<str>, S2: AsRef<str>>(
     env: &Env,
-    username: S,
+    user_id: S,
     session_id: S2,
 ) -> Result<()> {
     let sessions_kv = env.kv("SESSIONS")?;
@@ -138,7 +138,7 @@ async fn update_session<S: AsRef<str>, S2: AsRef<str>>(
         .expect("Error: Could not parse expiry environment variable");
 
     sessions_kv
-        .put(session_id.as_ref(), username.as_ref())?
+        .put(session_id.as_ref(), user_id.as_ref())?
         .expiration_ttl(expiry)
         .execute()
         .await?;
@@ -190,13 +190,13 @@ pub async fn get_session<S: AsRef<str>>(
 
 pub async fn create_user<S: AsRef<str>>(
     env: &Env,
-    email: S,
+    user_id: S,
     username: S,
     password: S,
 ) -> Result<Option<String>> {
     let username = username.as_ref();
     let password = password.as_ref();
-    let email = email.as_ref();
+    let user_id = user_id.as_ref();
 
     let hash = crypto_helpers::hash_password(password);
     let acc = user_obj::UserAccount {
@@ -205,14 +205,14 @@ pub async fn create_user<S: AsRef<str>>(
     };
     let serialized = serde_json::to_string(&acc).unwrap();
 
-    if get_user(env, email).await?.is_some() {
+    if get_user(env, user_id).await?.is_some() {
         return Ok(None);
     }
 
     let users_kv = env.kv("USERS")?;
-    users_kv.put(email, serialized)?.execute().await?;
+    users_kv.put(user_id, serialized)?.execute().await?;
 
-    let session_id = create_session(env, email, password)
+    let session_id = create_session(env, user_id, password)
         .await?
         .expect("Create session failed when it shouldn't have");
     Ok(Some(session_id))
