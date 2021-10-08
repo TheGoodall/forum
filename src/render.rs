@@ -16,6 +16,12 @@ pub async fn render_page(
         .strip_prefix('/')
         .expect("Expected path to begin with /");
 
+    let prev_post_id = &post_id[..if post_id.chars().count() > 0 {
+        post_id.chars().count() - 1
+    } else {
+        0
+    }];
+
     // get content, return error if page doesn't exists
     let content = match db::get_content(env, post_id).await? {
         None => {
@@ -53,7 +59,8 @@ pub async fn render_page(
         .replace("<!--title-->", post_id)
         .replace("<!--content-->", content.post.content.as_str())
         .replace("<!--author-->", username.as_ref())
-        .replace("<!--replies-->", replies_html.as_str());
+        .replace("<!--replies-->", replies_html.as_str())
+        .replace("<!--backPath-->", prev_post_id);
 
     let login_regex = Regex::new(r"<!--startLogin-->(.|\n)*<!--endLogin-->").unwrap();
     let logout_regex = Regex::new(r"<!--startLogout-->(.|\n)*<!--endLogout-->").unwrap();
