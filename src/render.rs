@@ -49,30 +49,40 @@ pub async fn render_page(
         .collect::<String>();
     // render page
 
-    let username = match content.user {
-        Some(user) => user.account.username,
-        None => "[Deleted]".to_owned(),
+    let author_username = match &content.user {
+        Some(user) => &user.account.username,
+        None => "[Deleted]",
+    };
+    let author_userid = match &content.user {
+        Some(user) => &user.user_id,
+        None => "[Deleted]",
     };
 
     let mut response = include_str!("html/index.html")
         .replace("/*style*/", style)
         .replace("<!--title-->", post_id)
         .replace("<!--content-->", content.post.content.as_str())
-        .replace("<!--author-->", username.as_ref())
+        .replace("<!--author-->", author_username.as_ref())
         .replace("<!--replies-->", replies_html.as_str())
         .replace("<!--backPath-->", prev_post_id);
 
     let login_regex = Regex::new(r"<!--startLogin-->(.|\n)*<!--endLogin-->").unwrap();
     let logout_regex = Regex::new(r"<!--startLogout-->(.|\n)*<!--endLogout-->").unwrap();
     let post_regex = Regex::new(r"<!--createPostUIStart-->(.|\n)*<!--createPostUIEnd-->").unwrap();
+    let edit_regex = Regex::new(r"<!--editPostUIStart-->(.|\n)*<!--editPostUIEnd-->").unwrap();
     response = match user {
         Some(user) => {
             response = response.replace("<!--username-->", user.account.username.as_str());
-            login_regex.replace_all(&response, "").into_owned()
+            response = login_regex.replace_all(&response, "").into_owned();
+            if user.user_id != author_userid {
+                response = edit_regex.replace_all(&response, "").into_owned();
+            }
+            response
         }
         None => {
             response = response.replace("<!--username-->", "");
             response = logout_regex.replace_all(&response, "").into_owned();
+            response = edit_regex.replace_all(&response, "").into_owned();
             post_regex.replace_all(&response, "").into_owned()
         }
     };
