@@ -1,5 +1,5 @@
-use super::db;
-use super::user_obj::*;
+use crate::db::post::*;
+use crate::user_obj;
 use regex::Regex;
 use worker::*;
 
@@ -7,7 +7,7 @@ pub async fn render_page(
     path: &str,
     env: &Env,
     is_login_error: bool,
-    user: Option<User>,
+    user: Option<user_obj::User>,
 ) -> Result<Response> {
     let style = include_str!("html/index.css");
 
@@ -23,7 +23,7 @@ pub async fn render_page(
     }];
 
     // get content, return error if page doesn't exists
-    let content = match db::get_content(env, post_id).await? {
+    let content = match get_content(env, post_id).await? {
         None => {
             return Response::error("Page Not Found", 404);
         }
@@ -31,7 +31,7 @@ pub async fn render_page(
     };
 
     // get all replies to post
-    let replies = db::get_replies(env, post_id).await?;
+    let replies = get_replies(env, post_id).await?;
 
     // Render replies
     let replies_html = replies

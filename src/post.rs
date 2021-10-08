@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 use worker::*;
 
-use super::*;
+use crate::db::post::*;
+use crate::db::user::*;
+use crate::render_page;
+use crate::user_obj;
 
 pub async fn handle_post_request<S: AsRef<str>>(
     mut req: Request,
@@ -31,7 +34,7 @@ pub async fn handle_post_request<S: AsRef<str>>(
                 let response = Response::empty();
                 let mut headers = Headers::new();
 
-                let session_id = db::create_session(env, user_id, password)
+                let session_id = create_session(env, user_id, password)
                     .await
                     .expect("Server failed to create session.");
 
@@ -54,7 +57,7 @@ pub async fn handle_post_request<S: AsRef<str>>(
                     let response = Response::empty();
                     let mut headers = Headers::new();
 
-                    let session_id = db::create_user(env, user_id, username, password).await?;
+                    let session_id = create_user(env, user_id, username, password).await?;
 
                     if let Some(session_id) = session_id {
                         headers
@@ -85,7 +88,7 @@ pub async fn handle_post_request<S: AsRef<str>>(
             .set("Location", req.path().as_str())
             .expect("Failed to set response header");
 
-        db::delete_session(
+        delete_session(
             env,
             session_id.expect("Error: User was Some but session_id was None!"),
         )
@@ -112,11 +115,11 @@ pub async fn handle_post_request<S: AsRef<str>>(
             }
 
             // Ensure path exists
-            if db::get_content(env, post_id).await?.is_none() {
+            if get_content(env, post_id).await?.is_none() {
                 return Response::error("Error: Can only reply to a post that exists", 400);
             }
             // Ensure fulltitle doesn't exist
-            if db::get_content(env, fulltitle.as_str()).await?.is_some() {
+            if get_content(env, fulltitle.as_str()).await?.is_some() {
                 return Response::error("Error: post already exists", 409);
             }
             // Ensure total length is <= 512
@@ -125,7 +128,7 @@ pub async fn handle_post_request<S: AsRef<str>>(
             }
 
             // actually save new post content
-            db::post_content(env, fulltitle.as_str(), content.as_str(), user).await?;
+            post_content(env, fulltitle.as_str(), content.as_str(), user).await?;
 
             // create reponse to redirect user to new page
             let response = Response::empty()?;
