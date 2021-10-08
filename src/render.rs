@@ -60,7 +60,7 @@ pub async fn render_page(
     let post_regex = Regex::new(r"<!--createPostUIStart-->(.|\n)*<!--createPostUIEnd-->").unwrap();
     response = match user {
         Some(user) => {
-            response = response.replace("<!--username-->", user.user_id.as_str());
+            response = response.replace("<!--username-->", user.account.username.as_str());
             login_regex.replace_all(&response, "").into_owned()
         }
         None => {
