@@ -57,6 +57,7 @@ pub async fn render_page(
 
     let login_regex = Regex::new(r"<!--startLogin-->(.|\n)*<!--endLogin-->").unwrap();
     let logout_regex = Regex::new(r"<!--startLogout-->(.|\n)*<!--endLogout-->").unwrap();
+    let post_regex = Regex::new(r"<!--createPostUIStart-->(.|\n)*<!--createPostUIEnd-->").unwrap();
     response = match user {
         Some(user) => {
             response = response.replace("<!--username-->", user.user_id.as_str());
@@ -64,7 +65,8 @@ pub async fn render_page(
         }
         None => {
             response = response.replace("<!--username-->", "");
-            logout_regex.replace_all(&response, "").into_owned()
+            response = logout_regex.replace_all(&response, "").into_owned();
+            post_regex.replace_all(&response, "").into_owned()
         }
     };
 
