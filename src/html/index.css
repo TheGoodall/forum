@@ -5,16 +5,15 @@ html, body, h1, h2, h3, h4, h5, h6, p {
     box-sizing: border-box;
 }
 
-<<<<<<< HEAD
 aside {
     background-color: #ddd;
-=======
+}
+
 .page-title{
     font-size: 2em;
     font-weight: bold;
     text-decoration: none;
     color: black;
->>>>>>> 04a5d40908a29234aef52a9aa4b406ce5d92f2d8
 }
 
 
