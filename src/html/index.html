@@ -10,11 +10,12 @@
 
 <body>
 	<header>
-		<h1>treply</h1>
+		<a class="page-title" href="/">treply</a>
 	</header>
 	<section class="container">
 		<main>
 			<article class="post">
+				<a href="/<!--backPath-->">back</a>
 				<h2>
 					<!--title-->
 				</h2> @ <span class="user">
@@ -22,20 +23,30 @@
 				<p>
 					<!--content-->
 				</p>
+				<!--editPostUIStart-->
+				<form class="delete" method="POST" action="<!--title-->?delete">
+					<label>
+						<button type="submit">delete</button>
+						<!--loginError-->
+					</label>
+				</form>
+				<!--editPostUIEnd-->
+
 			</article>
+			<!--createPostUIStart-->
 			<form class="user-subpost" method="POST" action="<!--title-->">
 				<span class="user-subpost-title">
 					<!--title--><input name="title" maxlength="1" autocomplete="off"></span>
 				<textarea maxlength="512" name="content"></textarea>
 				<button type="submit">Post</button>
 			</form>
+			<!--createPostUIEnd-->
 			<div class="subpost-group">
 				<!--replies-->
 			</div>
 		</main>
 		<aside>
 			<h3>Welcome!</h3>
-			<!--username-->
 			<p>This is treply. It's a mega-forum where every post title contains the title of the post it's replying to.
 				That might seem like a wierd gimmick, and it really is.</p>
 			<section class="login-container">
@@ -56,7 +67,7 @@
 				<form class="register" method="POST" action="<!--title-->?register">
 					<label>
 						<input name="username" placeholder="Username">
-						<input name="email" type="email"  placeholder="Email" />
+						<input name="email" type="email" placeholder="Email" />
 						<input name="password" type="password" placeholder="Password" />
 						<button type="submit">Register</button>
 					</label>
@@ -77,7 +88,8 @@
 
 	</section>
 
-	<footer>Copyright &copy; James, Jamie & Josh <br><small>Want to advertise here? Contact Jamie <em>discreetly</em></small>
+	<footer>Copyright &copy; James, Jamie & Josh <br><small>Want to advertise here? Contact Jamie
+			<em>discreetly</em></small>
 	</footer>
 </body>
 

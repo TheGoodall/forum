@@ -1,3 +1,4 @@
+use crate::db::user::*;
 use std::collections::HashMap;
 
 use worker::*;
@@ -38,7 +39,7 @@ pub async fn main(req: Request, env: Env) -> Result<Response> {
 
     // Get user for session if valid session else None
     let user = if let Some(ref session_id) = session_id {
-        db::get_session(&env, &session_id).await?
+        get_session(&env, &session_id).await?
     } else {
         None
     };

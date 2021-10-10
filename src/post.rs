@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 use worker::*;
 
-use super::*;
+use crate::db::post::*;
+use crate::db::user::*;
+use crate::render_page;
+use crate::user_obj;
 
 pub async fn handle_post_request<S: AsRef<str>>(
     mut req: Request,
@@ -26,12 +29,12 @@ pub async fn handle_post_request<S: AsRef<str>>(
 
     // Priority is login -> register -> logout
     if hashmap.contains_key("login") {
-        if let Some(FormEntry::Field(email)) = form_data.get("email") {
+        if let Some(FormEntry::Field(user_id)) = form_data.get("email") {
             if let Some(FormEntry::Field(password)) = form_data.get("password") {
                 let response = Response::empty();
                 let mut headers = Headers::new();
 
-                let session_id = db::create_session(env, email, password)
+                let session_id = create_session(env, user_id, password)
                     .await
                     .expect("Server failed to create session.");
 
@@ -48,21 +51,23 @@ pub async fn handle_post_request<S: AsRef<str>>(
         }
         return Response::error("Bad request", 400);
     } else if hashmap.contains_key("register") {
-        if let Some(FormEntry::Field(email)) = form_data.get("email") {
+        if let Some(FormEntry::Field(user_id)) = form_data.get("email") {
             if let Some(FormEntry::Field(password)) = form_data.get("password") {
-                let response = Response::empty();
-                let mut headers = Headers::new();
+                if let Some(FormEntry::Field(username)) = form_data.get("username") {
+                    let response = Response::empty();
+                    let mut headers = Headers::new();
 
-                let session_id = db::create_user(env, email, password).await?;
+                    let session_id = create_user(env, user_id, username, password).await?;
 
-                if let Some(session_id) = session_id {
-                    headers
-                        .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
-                        .unwrap();
-                    headers.set("Location", req.path().as_str()).unwrap();
-                    return Ok(response.unwrap().with_status(303).with_headers(headers));
-                } else {
-                    return Ok(render_page(&path, env, true, user).await?.with_status(200));
+                    if let Some(session_id) = session_id {
+                        headers
+                            .set("Set-Cookie", format!("sessionId={}", session_id).as_str())
+                            .unwrap();
+                        headers.set("Location", req.path().as_str()).unwrap();
+                        return Ok(response.unwrap().with_status(303).with_headers(headers));
+                    } else {
+                        return Ok(render_page(&path, env, true, user).await?.with_status(200));
+                    }
                 }
             }
         }
@@ -83,7 +88,7 @@ pub async fn handle_post_request<S: AsRef<str>>(
             .set("Location", req.path().as_str())
             .expect("Failed to set response header");
 
-        db::delete_session(
+        delete_session(
             env,
             session_id.expect("Error: User was Some but session_id was None!"),
         )
@@ -91,6 +96,28 @@ pub async fn handle_post_request<S: AsRef<str>>(
         let mut headers = Headers::new();
         headers.set("Location", req.path().as_str()).unwrap();
         return Ok(Response::empty()?.with_status(303).with_headers(headers));
+    }
+
+    if hashmap.contains_key("delete") {
+        return match get_content(env, post_id).await? {
+            Some(post) => {
+                if post.post.user == user.user_id {
+                    delete_post(env, post_id).await?;
+
+                    let mut headers = Headers::new();
+                    let prev_post_id = &post_id[..if post_id.chars().count() > 0 {
+                        post_id.chars().count() - 1
+                    } else {
+                        0
+                    }];
+                    headers.set("Location", prev_post_id).unwrap();
+                    Ok(Response::empty()?.with_status(303).with_headers(headers))
+                } else {
+                    Response::error("Error: Insufficient permissions", 400)
+                }
+            }
+            None => Response::error("Error: Invalid post", 400),
+        };
     }
 
     // unpack form data and ensure that the correct attributes exist.
@@ -110,11 +137,11 @@ pub async fn handle_post_request<S: AsRef<str>>(
             }
 
             // Ensure path exists
-            if db::get_content(env, post_id).await?.is_none() {
+            if get_content(env, post_id).await?.is_none() {
                 return Response::error("Error: Can only reply to a post that exists", 400);
             }
             // Ensure fulltitle doesn't exist
-            if db::get_content(env, fulltitle.as_str()).await?.is_some() {
+            if get_content(env, fulltitle.as_str()).await?.is_some() {
                 return Response::error("Error: post already exists", 409);
             }
             // Ensure total length is <= 512
@@ -123,7 +150,7 @@ pub async fn handle_post_request<S: AsRef<str>>(
             }
 
             // actually save new post content
-            db::post_content(env, fulltitle.as_str(), content.as_str(), user).await?;
+            post_content(env, fulltitle.as_str(), content.as_str(), user).await?;
 
             // create reponse to redirect user to new page
             let response = Response::empty()?;
