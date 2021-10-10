@@ -98,6 +98,28 @@ pub async fn handle_post_request<S: AsRef<str>>(
         return Ok(Response::empty()?.with_status(303).with_headers(headers));
     }
 
+    if hashmap.contains_key("delete") {
+        return match get_content(env, post_id).await? {
+            Some(post) => {
+                if post.post.user == user.user_id {
+                    delete_post(env, post_id).await?;
+
+                    let mut headers = Headers::new();
+                    let prev_post_id = &post_id[..if post_id.chars().count() > 0 {
+                        post_id.chars().count() - 1
+                    } else {
+                        0
+                    }];
+                    headers.set("Location", prev_post_id).unwrap();
+                    Ok(Response::empty()?.with_status(303).with_headers(headers))
+                } else {
+                    Response::error("Error: Insufficient permissions", 400)
+                }
+            }
+            None => Response::error("Error: Invalid post", 400),
+        };
+    }
+
     // unpack form data and ensure that the correct attributes exist.
     if let Some(FormEntry::Field(title)) = form_data.get("title") {
         if let Some(FormEntry::Field(content)) = form_data.get("content") {

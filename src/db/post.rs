@@ -63,19 +63,20 @@ pub async fn get_replies(env: &Env, post_id: &str) -> Result<Vec<post_obj::PostT
         .map(|key| async move {
             let key_name = key.name.as_str().trim_start();
             let kv = env.kv("POSTS")?;
-            let body = kv
-                .get(key.name.as_str())
-                .await?
-                .expect("Key is apparenly None")
-                .as_string();
-            let post: post_obj::Post = serde_json::from_str(body.as_str())?;
-            let user = post.user.to_string();
-            let post_title = post_obj::PostTitle {
-                title: key_name.to_string(),
-                post,
-                user: user::get_user(env, user).await?,
-            };
-            worker::Result::Ok(post_title)
+            if let Some(body) = kv.get(key.name.as_str()).await? {
+                let body = body.as_string();
+                let post: post_obj::Post = serde_json::from_str(body.as_str())?;
+                let user = post.user.to_string();
+                let post_title = post_obj::PostTitle {
+                    title: key_name.to_string(),
+                    post,
+                    user: user::get_user(env, user).await?,
+                };
+                return worker::Result::Ok(post_title);
+            }
+            Err(worker::Error::RustError(String::from(
+                "Key is apparenly None",
+            )))
         })
         // Actually run the created futures and convert back to iterator
         .collect::<FuturesOrdered<_>>()
@@ -96,4 +97,11 @@ fn get_prefix(post_id: &str, offset: usize) -> String {
         .take((512 - key_length) - offset)
         .collect::<String>();
     format!("{}{}", zeros, post_id)
+}
+
+pub async fn delete_post(env: &Env, post_id: &str) -> Result<()> {
+    let kv = env.kv("POSTS")?;
+    let post_id = get_prefix(post_id, 0);
+    kv.delete(&post_id).await?;
+    Ok(())
 }
