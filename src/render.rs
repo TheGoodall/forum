@@ -9,7 +9,14 @@ pub async fn render_page(
     is_login_error: bool,
     user: Option<user_obj::User>,
 ) -> Result<Response> {
-    let style = include_str!("html/index.css");
+
+    let styles = [
+        include_str!("html/style/login.css"),
+        include_str!("html/style/layout.css"),
+        include_str!("html/style/index.css")
+    ];
+
+    let style = styles.join("\n");
 
     // Get post id from path
     let post_id = path
@@ -59,7 +66,7 @@ pub async fn render_page(
     };
 
     let mut response = include_str!("html/index.html")
-        .replace("/*style*/", style)
+        .replace("/*style*/", style.as_str())
         .replace("<!--title-->", post_id)
         .replace("<!--content-->", content.post.content.as_str())
         .replace("<!--author-->", author_username.as_ref())
